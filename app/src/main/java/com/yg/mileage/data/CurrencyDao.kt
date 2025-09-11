@@ -29,3 +29,6 @@ interface CurrencyDao {
     @Query("UPDATE currencies SET isDefault = 1 WHERE id = :id")
     suspend fun setDefaultCurrency(id: String)
 }
+
+
+

@@ -39,3 +39,6 @@ data class FuelPriceEntity(
         }
     }
 }
+
+
+

@@ -1,8 +1,15 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 
 package com.yg.mileage
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,18 +18,39 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import java.text.DecimalFormat
 import kotlinx.coroutines.launch
+import java.text.DecimalFormat
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.UUID
 
 @Composable
 fun CurrencySettingsScreen(
@@ -213,7 +241,7 @@ fun CurrencySettingsScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "Updated: ${java.text.SimpleDateFormat("MMM dd, yyyy").format(fuelPrice.lastUpdated)}",
+                            text = "Updated: ${SimpleDateFormat("MMM dd, yyyy").format(fuelPrice.lastUpdated)}",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -279,6 +307,17 @@ fun CurrencySettingsScreen(
     }
 }
 
+@Preview
+@Composable
+fun CurrencySettingsScreenPreview() {
+    // Mock CarViewModel or use a preview-specific ViewModel
+    // For simplicity, we'll assume a CarViewModel can be created without complex dependencies here
+    // If CarViewModel has complex dependencies (like Application context),
+    // you might need to create a fake/mock version for previews.
+    val mockCarViewModel: CarViewModel = viewModel() // This might need adjustment based on CarViewModel's constructor
+    CurrencySettingsScreen(carViewModel = mockCarViewModel)
+}
+
 
 @Composable
 fun CurrencyDialog(
@@ -326,7 +365,7 @@ fun CurrencyDialog(
                 onClick = {
                     if (code.isNotBlank() && name.isNotBlank() && symbol.isNotBlank()) {
                         onSave(Currency(
-                            id = currency?.id ?: java.util.UUID.randomUUID().toString(),
+                            id = currency?.id ?: UUID.randomUUID().toString(),
                             code = code,
                             name = name,
                             symbol = symbol,
@@ -345,6 +384,28 @@ fun CurrencyDialog(
         }
     )
 }
+
+@Preview
+@Composable
+fun AddCurrencyDialogPreview() {
+    CurrencyDialog(
+        currency = null,
+        onDismiss = {},
+        onSave = {}
+    )
+}
+
+@Preview
+@Composable
+fun EditCurrencyDialogPreview() {
+    val sampleCurrency = Currency(code = "USD", name = "US Dollar", symbol = "$", isDefault = true)
+    CurrencyDialog(
+        currency = sampleCurrency,
+        onDismiss = {},
+        onSave = {}
+    )
+}
+
 
 @Composable
 fun FuelPriceDialog(
@@ -400,7 +461,7 @@ fun FuelPriceDialog(
                 OutlinedTextField(
                     value = priceText,
                     onValueChange = { 
-                        if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d{0,2}\$"))) {
+                        if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d{0,2}$"))) {
                             priceText = it
                         }
                     },
@@ -417,11 +478,11 @@ fun FuelPriceDialog(
                     val price = priceText.toDoubleOrNull()
                     if (price != null && price > 0 && selectedCurrencyId.isNotBlank()) {
                         onSave(FuelPrice(
-                            id = fuelPrice?.id ?: java.util.UUID.randomUUID().toString(),
+                            id = fuelPrice?.id ?: UUID.randomUUID().toString(),
                             fuelType = selectedFuelType,
                             pricePerUnit = price,
                             currencyId = selectedCurrencyId,
-                            lastUpdated = java.util.Date(),
+                            lastUpdated = Date(),
                             isActive = true
                         ))
                     }
@@ -435,5 +496,36 @@ fun FuelPriceDialog(
                 Text("Cancel")
             }
         }
+    )
+}
+
+@Preview
+@Composable
+fun AddFuelPriceDialogPreview() {
+    val sampleCurrencies = listOf(
+        Currency(id="1", code = "USD", name = "US Dollar", symbol = "$"),
+        Currency(id="2", code = "EUR", name = "Euro", symbol = "€")
+    )
+    FuelPriceDialog(
+        fuelPrice = null,
+        currencies = sampleCurrencies,
+        onDismiss = {},
+        onSave = {}
+    )
+}
+
+@Preview
+@Composable
+fun EditFuelPriceDialogPreview() {
+    val sampleCurrencies = listOf(
+        Currency(id="1", code = "USD", name = "US Dollar", symbol = "$", isDefault = true),
+        Currency(id="2", code = "EUR", name = "Euro", symbol = "€")
+    )
+    val sampleFuelPrice = FuelPrice(fuelType = FuelType.PETROL, pricePerUnit = 1.50, currencyId = "1", lastUpdated = Date())
+    FuelPriceDialog(
+        fuelPrice = sampleFuelPrice,
+        currencies = sampleCurrencies,
+        onDismiss = {},
+        onSave = {}
     )
 }

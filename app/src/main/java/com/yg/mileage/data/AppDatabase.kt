@@ -20,7 +20,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun vehicleDao(): VehicleDao
     abstract fun tripDao(): TripDao
     abstract fun currencyDao(): CurrencyDao
-    abstract fun fuelPriceDao(): FuelPriceDao
+    abstract fun fuelPriceDao():    FuelPriceDao
 
     companion object {
         @Volatile

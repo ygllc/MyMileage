@@ -34,3 +34,6 @@ data class CurrencyEntity(
         }
     }
 }
+
+
+

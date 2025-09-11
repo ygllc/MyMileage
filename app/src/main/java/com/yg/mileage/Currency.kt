@@ -21,3 +21,6 @@ data class CurrencySettings(
     val defaultCurrency: Currency,
     val fuelPrices: Map<FuelType, FuelPrice>
 )
+
+
+
