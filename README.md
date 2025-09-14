@@ -1,4 +1,7 @@
 # MyMileage
+<img width="1024" height="500" alt="MyMileage (1)" src="https://github.com/user-attachments/assets/6127238e-bf93-46d9-bd9d-642ff0c63626" />
+
+## Introducing MyMileage,
 MyMileage is a modern Android app that makes tracking your vehicle’s mileage 🚙, fuel efficiency 📊, and trip history 📅 both simple and accurate. Designed with Jetpack Compose and Material 3 Expressive's expressive UI, it delivers a clean, user-friendly experience for drivers of all kinds.
 ## ✨Key Features
 • 🚘 Vehicle Management: Add, edit, and delete vehicle profiles with details like make, model, year, fuel type, and registration number.
