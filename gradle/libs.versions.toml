@@ -2,7 +2,7 @@
 adaptive = "1.2.0-beta02"
 agp = "8.13.0"
 coilCompose = "2.7.0"
-firebaseBom = "34.2.0"
+firebaseBom = "34.3.0"
 firebaseUiAuth = "9.0.0"
 googleApiClientAndroid = "2.8.1"
 googleApiServicesDrive = "v3-rev20250829-2.0.0"
