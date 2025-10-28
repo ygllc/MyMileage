@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -36,8 +38,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
+            javaParameters.set(true)
+        }
     }
     buildFeatures {
         compose = true
@@ -100,14 +105,18 @@ dependencies {
     implementation(libs.integrity)
     /** Fonts */
     implementation(libs.androidx.ui.text.google.fonts)
-    /** CameraX */
+    implementation(platform(libs.androidx.camera.bom))
+    // CameraX dependencies
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
-    /* ML Kit Text Recognition for Latin script (on-device) */
-    implementation(libs.text.recognition)
+
+    // ML Kit Text Recognition for Latin script (on-device)
+    implementation(libs.play.services.mlkit.text.recognition)
+
     // Accompanist Permissions for handling runtime camera permissions
     implementation(libs.accompanist.permissions)
+
 
 }
