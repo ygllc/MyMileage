@@ -49,7 +49,7 @@ data class TripEntity(
                 id = trip.id,
                 userId = userId, // <<< attach userId
                 vehicleId = trip.vehicleId,
-                vehicleName = trip.vehicleName,
+                vehicleName = "",
                 startMileage = trip.startMileage,
                 endMileage = trip.endMileage,
                 fuelFilled = trip.fuelFilled,

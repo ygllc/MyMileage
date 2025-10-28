@@ -163,11 +163,15 @@ class CarViewModel(
     suspend fun updateVehicle(vehicle: Vehicle) {
         currentUserId?.let { repository.updateVehicle(vehicle, it) }
     }
-    suspend fun deleteVehicle(vehicleName: String) {
-        currentUserId?.let { repository.deleteVehicle(vehicleName, it) }
+    suspend fun deleteVehicle(vehicleId: String): Boolean {
+        val canDelete = canDeleteVehicle(vehicleId)
+        if (canDelete) {
+            currentUserId?.let { repository.deleteVehicle(vehicleId, it) }
+        } 
+        return canDelete
     }
-    suspend fun canDeleteVehicle(vehicleName: String): Boolean {
-        return currentUserId?.let { repository.canDeleteVehicle(vehicleName, it) } ?: false
+    suspend fun canDeleteVehicle(vehicleId: String): Boolean {
+        return currentUserId?.let { repository.canDeleteVehicle(vehicleId, it) } ?: false
     }
 
     fun onSignInResult(result: SignInResult) {

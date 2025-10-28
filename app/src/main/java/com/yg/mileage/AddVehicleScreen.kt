@@ -11,16 +11,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -33,8 +29,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -73,22 +71,6 @@ fun AddVehicleScreen(
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Top Bar with back button
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = { navController.navigateUp() }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-            }
-            Text(
-                text = if (vehicleToEdit != null) "Edit Vehicle" else "Add Vehicle",
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(start = 8.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
 
         // Vehicle Name TextField (Required)
         OutlinedTextField(
@@ -158,8 +140,8 @@ fun AddVehicleScreen(
                 label = { Text("Fuel Type *") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = fuelTypeExpanded) },
                 modifier = Modifier
-                    .menuAnchor()
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .menuAnchor(),
                 isError = fuelTypeError,
                 supportingText = {
                     if (fuelTypeError) {
@@ -231,7 +213,14 @@ fun AddVehicleScreen(
                             fuelTypeError = true
                         }
                         else -> {
-                            val newVehicle = Vehicle(
+                            val newVehicle = vehicleToEdit?.copy(
+                                name = name,
+                                make = make.text.trim(),
+                                model = model.text.trim(),
+                                year = year.text.trim(),
+                                fuelType = fuelType,
+                                registrationNumber = registrationNumber.text.trim()
+                            ) ?: Vehicle(
                                 name = name,
                                 make = make.text.trim(),
                                 model = model.text.trim(),
@@ -250,4 +239,14 @@ fun AddVehicleScreen(
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Preview(showBackground = true)
+@Composable
+fun AddVehicleScreenPreview() {
+    AddVehicleScreen(
+        navController = rememberNavController(),
+        onSaveVehicle = {}
+    )
 }

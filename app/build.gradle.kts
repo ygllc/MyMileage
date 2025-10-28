@@ -54,9 +54,8 @@ android {
 
 
 dependencies {
-    // Coil
     implementation(libs.coil.compose)
-    // Core Android & Kotlin
+    /** Core Android & Kotlin */
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -68,15 +67,15 @@ dependencies {
     implementation(libs.androidx.material3.window.size.class1)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    // Room
+    /** Room */
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.ui.text)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
     androidTestImplementation(libs.androidx.room.testing)
-    // Navigation
+    /** Navigation */
     implementation(libs.androidx.navigation.compose)
-    // Google Services
+    /** Google Services */
     implementation(libs.play.services.auth)
     implementation(libs.google.api.services.drive)
     implementation(libs.google.api.client.android)
@@ -92,15 +91,23 @@ dependencies {
     // Debug
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    // Firebase
+    /** Firebase */
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.ui.auth)
     implementation(libs.firebase.analytics)
-    // Play Integrity
+    /** Play Integrity */
     implementation(libs.integrity)
-    // Fonts
+    /** Fonts */
     implementation(libs.androidx.ui.text.google.fonts)
-// or a version compatible with your Firebase BoM
+    /** CameraX */
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+    /* ML Kit Text Recognition for Latin script (on-device) */
+    implementation(libs.text.recognition)
+    // Accompanist Permissions for handling runtime camera permissions
+    implementation(libs.accompanist.permissions)
 
 }

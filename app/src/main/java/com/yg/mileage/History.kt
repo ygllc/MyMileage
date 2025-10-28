@@ -12,14 +12,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.automirrored.outlined.List
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PendingActions
 import androidx.compose.material.icons.outlined.Done
-import androidx.compose.material.icons.outlined.PendingActions
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.PendingActions
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -139,7 +139,7 @@ fun TripLogScreen(
             contentColor = MaterialTheme.colorScheme.onPrimary
         ) {
             Icon(
-                imageVector = Icons.Default.Add,
+                imageVector = Icons.Rounded.Add,
                 contentDescription = "Add New Trip"
             )
         }
@@ -159,9 +159,9 @@ fun TripHistoryFilterSegmented(
         Icons.Filled.PendingActions
     )
     val unCheckedIcons = listOf(
-        Icons.AutoMirrored.Outlined.List,
+        Icons.AutoMirrored.Rounded.List,
         Icons.Outlined.Done,
-        Icons.Outlined.PendingActions
+        Icons.Rounded.PendingActions
     )
 
     Row(
@@ -288,14 +288,14 @@ fun TripCard(
             Row {
                 IconButton(onClick = onEdit) {
                     Icon(
-                        imageVector = Icons.Default.Edit,
+                        imageVector = Icons.Rounded.Edit,
                         contentDescription = "Edit",
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
                 IconButton(onClick = onDelete) {
                     Icon(
-                        imageVector = Icons.Default.Delete,
+                        imageVector = Icons.Rounded.Delete,
                         contentDescription = "Delete",
                         tint = MaterialTheme.colorScheme.error
                     )

@@ -34,19 +34,18 @@ class Repository(
         vehicleDao.updateVehicle(VehicleEntity.fromVehicle(vehicle, userId))
     }
 
-    suspend fun deleteVehicle(vehicleName: String, userId: String) {
-        val v = vehicleDao.getVehicleByName(vehicleName, userId)
+    suspend fun deleteVehicle(vehicleId: String, userId: String) {
+        val v = vehicleDao.getVehicleById(vehicleId, userId)
         v?.let { vehicleDao.deleteVehicle(it) }
     }
 
-    suspend fun canDeleteVehicle(vehicleName: String, userId: String): Boolean {
-        val vehicle = vehicleDao.getVehicleByName(vehicleName, userId)
-        return vehicle?.let { vehicleDao.getTripCountForVehicle(it.name, userId) == 0 } ?: false
+    suspend fun canDeleteVehicle(vehicleId: String, userId: String): Boolean {
+        return !vehicleDao.hasTrips(vehicleId, userId)
     }
 
     // --- TRIPS ---
     fun getAllTrips(userId: String): Flow<List<Trip>> =
-        tripDao.getAllTripsForUser(userId).map { it.map { e -> e.toTrip() } }
+        tripDao.getAllTripsForUser(userId).map { it.toTripList() }
 
     suspend fun addTrip(trip: Trip, userId: String) {
         val tripEntity = TripEntity.fromTrip(trip, userId)
@@ -143,4 +142,3 @@ class Repository(
         }
     }
 }
-

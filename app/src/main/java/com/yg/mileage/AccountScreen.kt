@@ -23,7 +23,6 @@ import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -150,9 +149,9 @@ fun SignedInAccountScreen(
                     onClick = onNavigateToPersonalInfo // Used here
                 )
                 HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    thickness = DividerDefaults.Thickness,
-                    color = DividerDefaults.color
+                    modifier = Modifier.padding(horizontal = 0.dp),
+                    thickness = 4.dp,
+                    color = MaterialTheme.colorScheme.surface
                 )
                 AccountInfoRow(
                     icon = Icons.Default.Security,

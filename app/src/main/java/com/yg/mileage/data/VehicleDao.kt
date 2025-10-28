@@ -28,8 +28,8 @@ interface VehicleDao {
     @Query("SELECT * FROM vehicles WHERE id = :id AND userId = :userId")
     suspend fun getVehicleById(id: String, userId: String): VehicleEntity?
 
-    @Query("SELECT COUNT(*) FROM trips WHERE vehicleId = :vehicleId AND userId = :userId")
-    suspend fun getTripCountForVehicle(vehicleId: String, userId: String): Int
+    @Query("SELECT EXISTS(SELECT 1 FROM trips WHERE vehicleId = :vehicleId AND userId = :userId LIMIT 1)")
+    suspend fun hasTrips(vehicleId: String, userId: String): Boolean
 
     @Query("DELETE FROM vehicles WHERE userId = :userId")
     suspend fun deleteAllVehiclesForUser(userId: String)

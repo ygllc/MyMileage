@@ -28,7 +28,7 @@ fun ProfileScreen(
     onAddVehicle: (Vehicle) -> Unit,
     onEditVehicle: (String, Vehicle) -> Unit,
     onDeleteVehicle: (String) -> Unit,
-    canDeleteVehicle: (String) -> Boolean = { true } // Default to true for backward compatibility
+    canDeleteVehicle: (String) -> Boolean
 ) {
         Column(
         modifier = Modifier
@@ -120,9 +120,9 @@ fun ProfileScreen(
                 items(savedVehicles) { vehicle ->
                     VehicleCard(
                         vehicleName = vehicle.name,
-                        canDelete = canDeleteVehicle(vehicle.name),
+                        canDelete = canDeleteVehicle(vehicle.id),
                         onEdit = { navController.navigate("add_vehicle/${vehicle.name}") },
-                        onDelete = { onDeleteVehicle(vehicle.name) }
+                        onDelete = { onDeleteVehicle(vehicle.id) }
                     )
                 }
             }
@@ -181,7 +181,7 @@ fun VehicleCard(
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Delete,
-                        contentDescription = if (canDelete) "Delete" else "Cannot delete - used in trips",
+                        contentDescription = if (canDelete) "Delete" else "Vehicle has trip data, profile cannot be deleted !!",
                         tint = if (canDelete) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface.copy(
                             alpha = 0.38f
                         ),

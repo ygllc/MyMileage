@@ -19,12 +19,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ShortNavigationBar
+import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -35,6 +35,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
@@ -108,8 +109,7 @@ class MainActivity : ComponentActivity() {
                 }
                 LaunchedEffect(navController) {
                     navController.currentBackStackEntryFlow.collect { backStackEntry ->
-                        val route = backStackEntry.destination.route
-                        val screen = when (route) {
+                        val screen = when (val route = backStackEntry.destination.route) {
                             Screen.TripDetails.route -> Screen.TripDetails
                             Screen.Profile.route -> Screen.Profile
                             Screen.TripLog.route -> Screen.TripLog
@@ -134,7 +134,7 @@ class MainActivity : ComponentActivity() {
 
                 Scaffold(
                     topBar = {
-                        TopAppBar(
+                        LargeFlexibleTopAppBar(
                             title = { Text(currentScreenTitle) },
                             navigationIcon = {
                                 if (canNavigateBack && !bottomNavItems.any { it.route == currentScreenTitle.lowercase() }) {
@@ -221,12 +221,12 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AppBottomNavigationBar(navController: NavHostController) {
-    NavigationBar {
+    ShortNavigationBar {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentDestination = navBackStackEntry?.destination
 
         bottomNavItems.forEach { screen ->
-            NavigationBarItem(
+            ShortNavigationBarItem(
                 icon = { Icon(screen.icon, contentDescription = screen.label) },
                 label = { Text(screen.label) },
                 selected = currentDestination?.route == screen.route,
@@ -263,6 +263,7 @@ fun AppNavHost(
     val savedVehicles by carViewModel.savedVehicles.collectAsState()
     var backupResultMsg by remember { mutableStateOf<String?>(null) }
     val isGoogleUser = carViewModel.isGoogleUser()
+    val context = LocalContext.current
 
     NavHost(
         navController = navController,
@@ -275,8 +276,15 @@ fun AppNavHost(
                 savedVehicles = savedVehicles,
                 onAddVehicle = { vehicle: Vehicle -> coroutineScope.launch { carViewModel.addVehicle(vehicle) } },
                 onEditVehicle = { oldName: String, newVehicle: Vehicle -> coroutineScope.launch { carViewModel.updateVehicle(newVehicle) } },
-                onDeleteVehicle = { vehicleName: String -> coroutineScope.launch { carViewModel.deleteVehicle(vehicleName) } },
-                canDeleteVehicle = { vehicleName: String -> runBlocking { carViewModel.canDeleteVehicle(vehicleName) } }
+                onDeleteVehicle = { vehicleId: String ->
+                    coroutineScope.launch {
+                        val success = carViewModel.deleteVehicle(vehicleId)
+                        if (!success) {
+                            Toast.makeText(context, "Vehicle has trip data, profile cannot be deleted !!", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                },
+                canDeleteVehicle = { vehicleId: String -> runBlocking { carViewModel.canDeleteVehicle(vehicleId) } }
             )
         }
         composable(Screen.TripLog.route) {
@@ -371,5 +379,4 @@ fun DefaultPreview() {
         }
     }
 }
-
 
