@@ -2,7 +2,6 @@ package com.yg.mileage.auth
 
 import android.content.Context
 import android.util.Log
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.http.ByteArrayContent
@@ -23,11 +22,11 @@ import java.nio.charset.StandardCharsets
 
 class DriveService(private val context: Context) {
 
-    private fun getDriveService(account: GoogleSignInAccount): Drive {
+    private fun getDriveService(accountEmail: String): Drive {
         val credential = GoogleAccountCredential.usingOAuth2(
             context, listOf(DriveScopes.DRIVE_APPDATA)
         )
-        credential.selectedAccount = account.account
+        credential.selectedAccountName = accountEmail
         return Drive.Builder(
             GoogleNetHttpTransport.newTrustedTransport(),
             GsonFactory.getDefaultInstance(),
@@ -43,10 +42,10 @@ class DriveService(private val context: Context) {
 
 
     // New methods for Vehicle objects
-    suspend fun saveVehiclesToDrive(account: GoogleSignInAccount, vehicles: List<Vehicle>): Boolean =
+    suspend fun saveVehiclesToDrive(accountEmail: String, vehicles: List<Vehicle>): Boolean =
         withContext(Dispatchers.IO) {
             try {
-                val drive = getDriveService(account)
+                val drive = getDriveService(accountEmail)
                 val gson = Gson()
                 val jsonVehicles = gson.toJson(vehicles)
 
@@ -85,10 +84,10 @@ class DriveService(private val context: Context) {
             }
         }
 
-    suspend fun loadVehiclesFromDrive(account: GoogleSignInAccount): List<Vehicle>? =
+    suspend fun loadVehiclesFromDrive(accountEmail: String): List<Vehicle>? =
         withContext(Dispatchers.IO) {
             try {
-                val drive = getDriveService(account)
+                val drive = getDriveService(accountEmail)
                 val fileList: FileList = drive.files().list()
                     .setSpaces("appDataFolder")
                     .setFields("nextPageToken, files(id, name)")
@@ -117,10 +116,10 @@ class DriveService(private val context: Context) {
         }
 
     // Trip management methods
-    suspend fun saveTripsToDrive(account: GoogleSignInAccount, trips: List<Trip>): Boolean =
+    suspend fun saveTripsToDrive(accountEmail: String, trips: List<Trip>): Boolean =
         withContext(Dispatchers.IO) {
             try {
-                val drive = getDriveService(account)
+                val drive = getDriveService(accountEmail)
                 val gson = Gson()
                 val jsonTrips = gson.toJson(trips)
 
@@ -159,10 +158,10 @@ class DriveService(private val context: Context) {
             }
         }
 
-    suspend fun loadTripsFromDrive(account: GoogleSignInAccount): List<Trip>? =
+    suspend fun loadTripsFromDrive(accountEmail: String): List<Trip>? =
         withContext(Dispatchers.IO) {
             try {
-                val drive = getDriveService(account)
+                val drive = getDriveService(accountEmail)
                 val fileList: FileList = drive.files().list()
                     .setSpaces("appDataFolder")
                     .setFields("nextPageToken, files(id, name)")
@@ -191,10 +190,10 @@ class DriveService(private val context: Context) {
         }
 
     // Legacy methods for backward compatibility
-    suspend fun saveCarsToDrive(account: GoogleSignInAccount, cars: List<String>): Boolean =
+    suspend fun saveCarsToDrive(accountEmail: String, cars: List<String>): Boolean =
         withContext(Dispatchers.IO) {
             try {
-                val drive = getDriveService(account)
+                val drive = getDriveService(accountEmail)
                 val gson = Gson()
                 val jsonCars = gson.toJson(cars)
 
@@ -233,10 +232,10 @@ class DriveService(private val context: Context) {
             }
         }
 
-    suspend fun loadCarsFromDrive(account: GoogleSignInAccount): List<String>? =
+    suspend fun loadCarsFromDrive(accountEmail: String): List<String>? =
         withContext(Dispatchers.IO) {
             try {
-                val drive = getDriveService(account)
+                val drive = getDriveService(accountEmail)
                 val fileList: FileList = drive.files().list()
                     .setSpaces("appDataFolder")
                     .setFields("nextPageToken, files(id, name)")

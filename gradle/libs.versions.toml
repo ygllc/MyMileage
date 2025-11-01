@@ -4,6 +4,7 @@ adaptive = "1.2.0"
 agp = "8.13.0"
 cameraBom = "1.3.4"
 coilCompose = "2.7.0"
+credential = "1.5.0"
 firebaseBom = "34.4.0"
 firebaseUiAuth = "9.1.1"
 googleApiClientAndroid = "2.8.1"
@@ -24,11 +25,13 @@ composeBom = "2025.10.01"
 material3 = "1.5.0-alpha07"
 material3WindowSizeClass = "1.5.0-alpha07"
 materialIcons = "1.8.3"
+mlkitTextRecognition = "19.0.1"
 navVersion = "2.9.5"
 playServicesAuth = "21.4.0"
 room = "2.8.3"
 uiText = "1.9.4"
 uiTextGoogleFonts = "1.9.4"
+googleid = "1.1.1"
 
 
 
@@ -36,11 +39,9 @@ uiTextGoogleFonts = "1.9.4"
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
 androidx-adaptive = { module = "androidx.compose.material3.adaptive:adaptive", version.ref = "adaptive" }
 androidx-camera-bom = { module = "androidx.camera:camera-bom", version.ref = "cameraBom" }
-androidx-camera-camera2 = { module = "androidx.camera:camera-camera2" }
-androidx-camera-core = { module = "androidx.camera:camera-core" }
-androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle" }
-androidx-camera-view = { module = "androidx.camera:camera-view" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-credential = { module = "androidx.credentials:credentials", version.ref = "credential" }
+androidx-credential-play-services-auth = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "credential" }
 androidx-graphics-shapes = { module = "androidx.graphics:graphics-shapes", version.ref = "graphicsShapes" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
 androidx-material-icons = { module = "androidx.compose.material:material-icons", version.ref = "materialIcons" }
@@ -81,7 +82,8 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
 androidx-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
-play-services-mlkit-text-recognition = { module = "com.google.android.gms:play-services-mlkit-text-recognition" }
+play-services-mlkit-text-recognition = { module = "com.google.android.gms:play-services-mlkit-text-recognition", version.ref = "mlkitTextRecognition" }
+googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

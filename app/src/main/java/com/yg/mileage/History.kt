@@ -1,5 +1,7 @@
 package com.yg.mileage
 
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,7 +27,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -61,7 +63,7 @@ fun TripLogScreen(
     val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()) }
 
     var filterIndex by remember { mutableIntStateOf(0) }
-    val coroutineScope = rememberCoroutineScope() // <---- ADD THIS LINE
+    val coroutineScope = rememberCoroutineScope()
 
     // Filtered trips according to filter selection
     val filteredTrips = remember(trips, filterIndex) {
@@ -81,7 +83,6 @@ fun TripLogScreen(
                 .padding(16.dp)
         ) {
             // FILTER SEGMENTED BUTTONS AT THE TOP
-            @OptIn(ExperimentalMaterial3ExpressiveApi::class)
             TripHistoryFilterSegmented(
                 selectedIndex = filterIndex,
                 onSelected = { filterIndex = it }
@@ -102,11 +103,11 @@ fun TripLogScreen(
                 }
             } else {
                 // Expressive individual cards spaced apart
-                Column(
+                LazyColumn(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    filteredTrips.sortedByDescending { it.updatedAt }.forEach { trip ->
+                    items(filteredTrips.sortedByDescending { it.updatedAt }) { trip ->
                         TripCard(
                             trip = trip,
                             dateFormat = dateFormat,
@@ -116,7 +117,7 @@ fun TripLogScreen(
                                 onNavigateToTripDetails()
                             },
                             onDelete = {
-                                coroutineScope.launch { // <---- FIX: wrap in coroutine
+                                coroutineScope.launch {
                                     carViewModel.deleteTrip(trip.id)
                                 }
                             }
@@ -127,7 +128,7 @@ fun TripLogScreen(
         }
 
         // Floating Action Button for adding new trip
-        FloatingActionButton(
+        ExtendedFloatingActionButton(
             onClick = {
                 carViewModel.setEditingTrip(null) // Clear any existing editing trip
                 onNavigateToTripDetails()
@@ -140,7 +141,10 @@ fun TripLogScreen(
         ) {
             Icon(
                 imageVector = Icons.Rounded.Add,
-                contentDescription = "Add New Trip"
+                contentDescription = "Add New Trip",
+            )
+            Text(
+            text = "  New Trip"
             )
         }
     }
@@ -286,6 +290,13 @@ fun TripCard(
                 )
             }
             Row {
+//                IconButton(onClick = {TODO()}) {
+//                    Icon(
+//                        imageVector = Icons.Rounded.ArrowCircleRight,
+//                        "Continue",
+//                        tint = MaterialTheme.colorScheme.primary
+//                    )
+//                }
                 IconButton(onClick = onEdit) {
                     Icon(
                         imageVector = Icons.Rounded.Edit,
@@ -300,6 +311,13 @@ fun TripCard(
                         tint = MaterialTheme.colorScheme.error
                     )
                 }
+//                IconButton(onClick = { TODO() }) {
+//                    Icon(
+//                        imageVector = Icons.Rounded.Share,
+//                        contentDescription = "Share",
+//                        tint = MaterialTheme.colorScheme.primary
+//                    )
+//                }
             }
         }
     }

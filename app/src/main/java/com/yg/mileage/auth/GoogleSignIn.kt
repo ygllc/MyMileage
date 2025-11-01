@@ -2,9 +2,16 @@ package com.yg.mileage.auth
 
 import android.app.Activity
 import android.content.Context
-import android.content.Intent
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import androidx.credentials.ClearCredentialStateRequest
+import androidx.credentials.Credential
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.ClearCredentialException
+import androidx.credentials.exceptions.GetCredentialException
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -33,30 +40,104 @@ class FirebaseAuthClient(
     private val context: Context,
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 ) {
+    private val credentialManager = CredentialManager.create(context)
 
     fun getSignedInUser(): UserData? = auth.currentUser?.toUserData()
+    
+    // Get Google Identity token for Drive backup
+    suspend fun getGoogleIdToken(activity: Activity): String? {
+        val webClientId = context.getString(com.yg.mileage.R.string.default_web_client_id)
+        
+        val googleIdOption = GetGoogleIdOption.Builder()
+            .setFilterByAuthorizedAccounts(true)
+            .setServerClientId(webClientId)
+            .build()
 
-    // Google Sign-In
-    suspend fun signInWithIntent(intent: Intent): SignInResult {
-        val credential = try {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(intent)
-            val account = task.await()
-            val idToken = account.idToken ?: return SignInResult(
-                data = null,
-                errorMessage = "Google sign-in failed: ID token was null."
+        val request = GetCredentialRequest.Builder()
+            .addCredentialOption(googleIdOption)
+            .build()
+
+        return try {
+            val result = credentialManager.getCredential(
+                request = request,
+                context = activity
             )
-            GoogleAuthProvider.getCredential(idToken, null)
+            
+            if (result.credential is CustomCredential && result.credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(result.credential.data)
+                googleIdTokenCredential.idToken
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    // Google Sign-In with Credential Manager
+    suspend fun signInWithGoogle(activity: Activity): SignInResult {
+        val webClientId = context.getString(com.yg.mileage.R.string.default_web_client_id)
+        
+        val googleIdOption = GetGoogleIdOption.Builder()
+            .setFilterByAuthorizedAccounts(false)
+            .setServerClientId(webClientId)
+            .build()
+
+        val request = GetCredentialRequest.Builder()
+            .addCredentialOption(googleIdOption)
+            .build()
+
+        return try {
+            val result = credentialManager.getCredential(
+                request = request,
+                context = activity
+            )
+            
+            handleSignIn(result.credential)
         } catch (e: Exception) {
             if (e is CancellationException) throw e
-            return SignInResult(data = null, errorMessage = e.message)
+            val message = when (e) {
+                is GetCredentialException -> {
+                    val typeMessage = when {
+                        e.type.contains("user_canceled", ignoreCase = true) -> "User canceled"
+                        e.type.contains("no_credential", ignoreCase = true) -> "No credential found"
+                        e.type.contains("invalid_credential", ignoreCase = true) -> "Invalid credential type"
+                        e.type.contains("interrupted", ignoreCase = true) -> "Interrupted"
+                        e.type.contains("network_error", ignoreCase = true) -> "Network error"
+                        e.type.contains("internal_error", ignoreCase = true) -> "Internal error"
+                        else -> "Unknown error: ${e.type}"
+                    }
+                    "Google sign-in failed: $typeMessage. ${e.message ?: e.localizedMessage ?: ""}".trim()
+                }
+                else -> "Google sign-in failed: ${e.localizedMessage ?: e.message ?: e.toString()}"
+            }
+            SignInResult(data = null, errorMessage = message)
         }
-
+    }
+    
+    private suspend fun handleSignIn(credential: Credential): SignInResult {
+        // Check if credential is of type Google ID
+        if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+            try {
+                val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                // Sign in to Firebase using the token
+                return firebaseAuthWithGoogle(googleIdTokenCredential.idToken)
+            } catch (e: GoogleIdTokenParsingException) {
+                return SignInResult(data = null, errorMessage = "Failed to parse Google ID token: ${e.localizedMessage ?: e.message}")
+            }
+        } else {
+            return SignInResult(data = null, errorMessage = "Credential is not of type Google ID")
+        }
+    }
+    
+    private suspend fun firebaseAuthWithGoogle(idToken: String): SignInResult {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
         return try {
             val user = auth.signInWithCredential(credential).await().user
             SignInResult(data = user?.toUserData(), errorMessage = null)
         } catch (e: Exception) {
             if (e is CancellationException) throw e
-            SignInResult(data = null, errorMessage = e.message)
+            SignInResult(data = null, errorMessage = e.localizedMessage ?: e.message)
         }
     }
 
@@ -67,7 +148,7 @@ class FirebaseAuthClient(
             SignInResult(data = result.user?.toUserData(), errorMessage = null)
         } catch (e: Exception) {
             if (e is CancellationException) throw e
-            SignInResult(data = null, errorMessage = e.message)
+            SignInResult(data = null, errorMessage = e.localizedMessage ?: e.message)
         }
     }
 
@@ -78,7 +159,7 @@ class FirebaseAuthClient(
             SignInResult(data = result.user?.toUserData(), errorMessage = null)
         } catch (e: Exception) {
             if (e is CancellationException) throw e
-            SignInResult(data = null, errorMessage = e.message)
+            SignInResult(data = null, errorMessage = e.localizedMessage ?: e.message)
         }
     }
 
@@ -120,22 +201,25 @@ class FirebaseAuthClient(
             SignInResult(data = user?.toUserData(), errorMessage = null)
         } catch (e: Exception) {
             if (e is CancellationException) throw e
-            SignInResult(data = null, errorMessage = e.message)
+            SignInResult(data = null, errorMessage = e.localizedMessage ?: e.message)
         }
     }
 
 
     suspend fun signOut() {
         try {
+            // Firebase sign out
             auth.signOut()
-            val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken("9981449638816-0a9mvq58gs6rangcqaibrenfl0jhdj4l.apps.googleusercontent.com")
-                .requestEmail()
-                .build()
-            val googleSignInClient = GoogleSignIn.getClient(context, gso)
-            googleSignInClient.signOut().await()
+            
+            // Clear credential state from all credential providers
+            val clearRequest = ClearCredentialStateRequest()
+            credentialManager.clearCredentialState(clearRequest)
         } catch (e: Exception) {
             if (e is CancellationException) throw e
+            // Log error but don't fail sign out
+            if (e is ClearCredentialException) {
+                // Handle clear credential exception if needed
+            }
         }
     }
 

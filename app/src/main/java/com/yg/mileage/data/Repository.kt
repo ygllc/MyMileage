@@ -2,7 +2,6 @@ package com.yg.mileage.data
 
 import android.content.Context
 import android.util.Log
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.yg.mileage.Trip
 import com.yg.mileage.Vehicle
 import com.yg.mileage.Currency
@@ -123,11 +122,10 @@ class Repository(
     }
 
     // --- Optional: Google Drive Backup (Only for Google Users) ---
-    suspend fun backupTripsToDrive(userId: String, googleAccount: GoogleSignInAccount): Boolean {
-        // You should implement DriveService.saveTripsToDrive for this
+    suspend fun backupTripsToDrive(userId: String, accountEmail: String): Boolean {
         return try {
             val allTrips = getAllTrips(userId).first()
-            driveService.saveTripsToDrive(googleAccount, allTrips)
+            driveService.saveTripsToDrive(accountEmail, allTrips)
             true
         } catch (e: Exception) {
             false

@@ -6,6 +6,7 @@ import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.DirectionsCar
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -23,9 +24,11 @@ sealed class Screen(
     object PersonalInfo : Screen("personal_info", "Personal Info", Icons.Filled.AccountCircle) // Placeholder icon
     object SecuritySettings : Screen("security_settings", "Security Settings", Icons.Filled.Security)
     object CurrencySettings : Screen("currency_settings", "Currency & Fuel Prices", Icons.Filled.AttachMoney)
+    object Activities : Screen("activities", "Stats", Icons.Rounded.CalendarMonth)
 }
 
 val bottomNavItems = listOf(
     Screen.Profile,
-    Screen.TripLog
+    Screen.TripLog,
+    Screen.Activities,
 )

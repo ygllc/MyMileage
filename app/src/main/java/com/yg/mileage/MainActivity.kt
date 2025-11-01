@@ -7,7 +7,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -47,10 +46,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.google.android.gms.auth.api.signin.GoogleSignInClient
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.yg.mileage.auth.FirebaseAuthClient
 import com.yg.mileage.data.Repository
 import com.yg.mileage.navigation.Screen
@@ -65,34 +60,16 @@ import kotlinx.coroutines.runBlocking
 class MainActivity : ComponentActivity() {
     private lateinit var carViewModel: CarViewModel
     private lateinit var firebaseAuthClient: FirebaseAuthClient
-    private lateinit var googleSignInClient: GoogleSignInClient
 
     private var phoneVerificationId: String? = null
-    var currentGoogleAccount: GoogleSignInAccount? = null
-
-    private val signInLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            lifecycleScope.launch {
-                val signInResult = firebaseAuthClient.signInWithIntent(result.data!!)
-                carViewModel.onSignInResult(signInResult)
-                val account = GoogleSignIn.getLastSignedInAccount(this@MainActivity)
-                currentGoogleAccount = account
-            }
-        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         firebaseAuthClient = FirebaseAuthClient(applicationContext)
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(getString(R.string.default_web_client_id))
-            .requestEmail()
-            .build()
-        googleSignInClient = GoogleSignIn.getClient(this, gso)
 
         val repository = Repository.getRepository(applicationContext)
         val carViewModelFactory = CarViewModelFactory(repository)
-        currentGoogleAccount = GoogleSignIn.getLastSignedInAccount(this)
 
         setContent {
             carViewModel = viewModel(factory = carViewModelFactory)
@@ -165,11 +142,17 @@ class MainActivity : ComponentActivity() {
                         navController = navController,
                         modifier = Modifier.padding(innerPadding),
                         carViewModel = carViewModel,
-                        currentGoogleAccount = currentGoogleAccount,
-                        googleSignInClient = googleSignInClient,
-                        signInLauncher = signInLauncher,
                         firebaseAuthClient = firebaseAuthClient,
                         coroutineScope = coroutineScope,
+                        onGoogleSignInClick = {
+                            lifecycleScope.launch {
+                                val signInResult = firebaseAuthClient.signInWithGoogle(this@MainActivity)
+                                if (signInResult.errorMessage != null) {
+                                    Toast.makeText(this@MainActivity, signInResult.errorMessage, Toast.LENGTH_LONG).show()
+                                }
+                                carViewModel.onSignInResult(signInResult)
+                            }
+                        },
                         onEmailSignInClick = { email, password ->
                             lifecycleScope.launch {
                                 val result = firebaseAuthClient.signInWithEmailPassword(email, password)
@@ -185,7 +168,7 @@ class MainActivity : ComponentActivity() {
                                 carViewModel.onSignInResult(result)
                                 if (result.errorMessage != null) {
                                     Toast.makeText(this@MainActivity, result.errorMessage, Toast.LENGTH_LONG).show()
-                                }
+                                 }
                             }
                         },
                         onSendOtpClick = { phoneNumber ->
@@ -250,11 +233,9 @@ fun AppNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier,
     carViewModel: CarViewModel,
-    currentGoogleAccount: GoogleSignInAccount?,
-    googleSignInClient: GoogleSignInClient,
-    signInLauncher: androidx.activity.result.ActivityResultLauncher<android.content.Intent>,
     firebaseAuthClient: FirebaseAuthClient,
     coroutineScope: CoroutineScope,
+    onGoogleSignInClick: () -> Unit,
     onEmailSignInClick: (String, String) -> Unit,
     onEmailSignUpClick: (String, String) -> Unit,
     onSendOtpClick: (String) -> Unit,
@@ -295,8 +276,7 @@ fun AppNavHost(
         }
         composable("trip_details") {
             MileageCalculatorScreen(
-                carViewModel = carViewModel,
-                googleAccount = currentGoogleAccount
+                carViewModel = carViewModel
             )
         }
         composable(Screen.AddVehicle.route) {
@@ -333,7 +313,7 @@ fun AppNavHost(
                         Log.d("MainActivity", "User signed out.")
                     }
                 },
-                onGoogleSignInClick = { signInLauncher.launch(googleSignInClient.signInIntent) },
+                onGoogleSignInClick = onGoogleSignInClick,
                 onEmailSignInClick = onEmailSignInClick,
                 onEmailSignUpClick = onEmailSignUpClick,
                 onSendOtpClick = onSendOtpClick,
@@ -345,16 +325,13 @@ fun AppNavHost(
             if (isGoogleUser) {
                 Button(
                     onClick = {
-                        carViewModel.backupTripsToDrive(currentGoogleAccount) { success, msg ->
-                            backupResultMsg = msg
+                        carViewModel.backupTripsToDrive { success, msg ->
+                            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                         }
                     },
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Text("Backup trips to Google Drive")
-                }
-                backupResultMsg?.let {
-                    Text(text = it, color = if (it.contains("success", true)) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
                 }
             } else {
                 Text(
@@ -367,8 +344,10 @@ fun AppNavHost(
         composable(Screen.PersonalInfo.route) { PersonalInfoScreen(carViewModel = carViewModel) }
         composable(Screen.SecuritySettings.route) { SecuritySettingsScreen(carViewModel = carViewModel) }
         composable(Screen.CurrencySettings.route) { CurrencySettingsScreen(carViewModel = carViewModel) }
-    }
+        composable(Screen.Activities.route) { }
+        }
 }
+
 
 @Preview(showBackground = true)
 @Composable
@@ -379,4 +358,3 @@ fun DefaultPreview() {
         }
     }
 }
-

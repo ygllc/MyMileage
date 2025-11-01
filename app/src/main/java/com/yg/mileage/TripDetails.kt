@@ -55,7 +55,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -69,8 +68,7 @@ enum class AppMessageType { ERROR, WARNING, SUCCESS, INFO }
 @Composable
 fun MileageCalculatorScreen(
     modifier: Modifier = Modifier,
-    carViewModel: CarViewModel,
-    googleAccount: GoogleSignInAccount?
+    carViewModel: CarViewModel
 ) {
     var startMileageText by remember { mutableStateOf("") }
     var endMileageText by remember { mutableStateOf("") }
@@ -468,9 +466,9 @@ fun MileageCalculatorScreen(
                                 )
 
                                 if (currentTripId != null || isTripInProgress) {
-                                    carViewModel.updateTrip(trip, googleAccount)
+                                    carViewModel.updateTrip(trip)
                                 } else {
-                                    carViewModel.addTrip(trip, googleAccount)
+                                    carViewModel.addTrip(trip)
                                 }
                                 isTripInProgress = true
                                 currentTripId = trip.id

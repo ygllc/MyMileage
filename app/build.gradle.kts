@@ -75,6 +75,7 @@ dependencies {
     /** Room */
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.ui.text)
+    implementation(libs.googleid)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
     androidTestImplementation(libs.androidx.room.testing)
@@ -87,6 +88,9 @@ dependencies {
     implementation(libs.google.oauth.client.jetty)
     implementation(libs.gson)
     implementation(libs.androidx.adaptive) // Adaptive
+    /** Credential Manager */
+    implementation(libs.androidx.credential)
+    implementation(libs.androidx.credential.play.services.auth)
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -105,18 +109,19 @@ dependencies {
     implementation(libs.integrity)
     /** Fonts */
     implementation(libs.androidx.ui.text.google.fonts)
-    implementation(platform(libs.androidx.camera.bom))
-    // CameraX dependencies
-    implementation(libs.androidx.camera.core)
-    implementation(libs.androidx.camera.camera2)
-    implementation(libs.androidx.camera.lifecycle)
-    implementation(libs.androidx.camera.view)
+    /** CameraX */
+//    val cameraBom = platform(libs.androidx.camera.bom)
+//    implementation(cameraBom)
+//    androidTestImplementation(cameraBom)
+//    implementation("androidx.camera:camera-core")
+//    implementation("androidx.camera:camera-camera2")
+//    implementation("androidx.camera:camera-lifecycle")
+//    implementation("androidx.camera:camera-view")
+//    // ML Kit Text Recognition for Latin script (on-device)
+//    implementation(libs.play.services.mlkit.text.recognition)
+//    // Accompanist Permissions for handling runtime camera permissions
+//    implementation(libs.accompanist.permissions)
 
-    // ML Kit Text Recognition for Latin script (on-device)
-    implementation(libs.play.services.mlkit.text.recognition)
-
-    // Accompanist Permissions for handling runtime camera permissions
-    implementation(libs.accompanist.permissions)
 
 
 }

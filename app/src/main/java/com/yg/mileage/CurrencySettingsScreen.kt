@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -48,8 +49,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
+import java.text.DateFormat.getDateInstance
 import java.text.DecimalFormat
-import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.UUID
 
@@ -268,7 +269,7 @@ fun CurrencySettingsScreenContent(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "Updated: ${SimpleDateFormat("MMM dd, yyyy").format(fuelPrice.lastUpdated)}",
+                            text = "Updated: ${getDateInstance(1).format(fuelPrice.lastUpdated).format(fuelPrice.lastUpdated)}",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -454,7 +455,8 @@ fun FuelPriceDialog(
 ) {
     var selectedFuelType by remember { mutableStateOf(fuelPrice?.fuelType ?: FuelType.PETROL) }
     var priceText by remember { mutableStateOf(fuelPrice?.pricePerUnit?.toString() ?: "") }
-    var selectedCurrencyId by remember { mutableStateOf(fuelPrice?.currencyId ?: currencies.firstOrNull()?.id ?: "") }
+    var selectedCurrencyId by remember { mutableStateOf(fuelPrice?.currencyId ?: currencies.firstOrNull { it.isDefault }?.id ?: currencies.firstOrNull()?.id ?: "") }
+    var isActive by remember { mutableStateOf(fuelPrice?.isActive ?: true) } // State for the checkbox
     var isFuelTypeMenuExpanded by remember { mutableStateOf(false) }
     var isCurrencyMenuExpanded by remember { mutableStateOf(false) }
 
@@ -463,7 +465,7 @@ fun FuelPriceDialog(
         title = { Text(if (fuelPrice != null) "Edit Fuel Price" else "Add Fuel Price") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                // Fuel Type Dropdown
+                // Fuel Type Dropdown (Existing code)
                 ExposedDropdownMenuBox(
                     expanded = isFuelTypeMenuExpanded,
                     onExpandedChange = { isFuelTypeMenuExpanded = !isFuelTypeMenuExpanded }
@@ -478,6 +480,7 @@ fun FuelPriceDialog(
                             .menuAnchor()
                             .fillMaxWidth()
                     )
+
                     ExposedDropdownMenu(
                         expanded = isFuelTypeMenuExpanded,
                         onDismissRequest = { isFuelTypeMenuExpanded = false }
@@ -494,7 +497,7 @@ fun FuelPriceDialog(
                     }
                 }
 
-                // Currency Dropdown
+                // Currency Dropdown (Existing code)
                 ExposedDropdownMenuBox(
                     expanded = isCurrencyMenuExpanded,
                     onExpandedChange = { isCurrencyMenuExpanded = !isCurrencyMenuExpanded }
@@ -529,7 +532,7 @@ fun FuelPriceDialog(
                 OutlinedTextField(
                     value = priceText,
                     onValueChange = {
-                        if (it.isEmpty() || it.matches(Regex("^\d*\.?\d{0,2}$"))) {
+                        if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d{0,2}$"))) {
                             priceText = it
                         }
                     },
@@ -538,6 +541,21 @@ fun FuelPriceDialog(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
+
+                // Added "Active" Checkbox
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Checkbox(
+                        checked = isActive,
+                        onCheckedChange = { isActive = it }
+                    )
+                    Text(
+                        text = "Active Price",
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                }
             }
         },
         confirmButton = {
@@ -551,7 +569,7 @@ fun FuelPriceDialog(
                             pricePerUnit = price,
                             currencyId = selectedCurrencyId,
                             lastUpdated = Date(),
-                            isActive = true
+                            isActive = isActive // Pass the checkbox state to the model
                         ))
                     }
                 }
