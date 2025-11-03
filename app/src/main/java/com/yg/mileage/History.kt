@@ -1,7 +1,5 @@
 package com.yg.mileage
 
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.rounded.List
@@ -19,9 +19,11 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.PendingActions
 import androidx.compose.material.icons.outlined.Done
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.ArrowCircleRight
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.PendingActions
+import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -290,13 +292,13 @@ fun TripCard(
                 )
             }
             Row {
-//                IconButton(onClick = {TODO()}) {
-//                    Icon(
-//                        imageVector = Icons.Rounded.ArrowCircleRight,
-//                        "Continue",
-//                        tint = MaterialTheme.colorScheme.primary
-//                    )
-//                }
+                IconButton(onClick = {TODO()}) {
+                    Icon(
+                        imageVector = Icons.Rounded.ArrowCircleRight,
+                        "Continue",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
                 IconButton(onClick = onEdit) {
                     Icon(
                         imageVector = Icons.Rounded.Edit,
@@ -311,13 +313,13 @@ fun TripCard(
                         tint = MaterialTheme.colorScheme.error
                     )
                 }
-//                IconButton(onClick = { TODO() }) {
-//                    Icon(
-//                        imageVector = Icons.Rounded.Share,
-//                        contentDescription = "Share",
-//                        tint = MaterialTheme.colorScheme.primary
-//                    )
-//                }
+                IconButton(onClick = { TODO() }) {
+                    Icon(
+                        imageVector = Icons.Rounded.Share,
+                        contentDescription = "Share",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
     }

@@ -2,6 +2,8 @@ package com.yg.mileage.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+val MyMileage = Color(0xFF035169)
+val MyMileageLight = Color(0x6a8d9c)
 val primaryLight = Color(0xFF65558F)
 val onPrimaryLight = Color(0xFFFFFFFF)
 val primaryContainerLight = Color(0xFFEADDFF)

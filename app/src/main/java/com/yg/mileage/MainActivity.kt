@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -47,6 +48,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.yg.mileage.auth.FirebaseAuthClient
+import com.yg.mileage.auth.SignInScreen
 import com.yg.mileage.data.Repository
 import com.yg.mileage.navigation.Screen
 import com.yg.mileage.navigation.bottomNavItems
@@ -73,129 +75,145 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             carViewModel = viewModel(factory = carViewModelFactory)
+            val currentUser by carViewModel.currentUser.collectAsState()
+            var showLoading by remember { mutableStateOf(true) }
 
-            MileageCalculatorTheme {
-                val navController = rememberNavController()
-                var currentScreenTitle by remember { mutableStateOf(Screen.TripLog.label) }
-                var canNavigateBack by remember { mutableStateOf(false) }
-                val coroutineScope = rememberCoroutineScope()
-                val currentUser = carViewModel.currentUser.collectAsState().value
+            LaunchedEffect(Unit) {
+                carViewModel.updateSignInState(firebaseAuthClient.getSignedInUser())
+                showLoading = false
+            }
 
-                LaunchedEffect(Unit) {
-                    carViewModel.updateSignInState(firebaseAuthClient.getSignedInUser())
+            if (showLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
-                LaunchedEffect(navController) {
-                    navController.currentBackStackEntryFlow.collect { backStackEntry ->
-                        val screen = when (val route = backStackEntry.destination.route) {
-                            Screen.TripDetails.route -> Screen.TripDetails
-                            Screen.Profile.route -> Screen.Profile
-                            Screen.TripLog.route -> Screen.TripLog
-                            Screen.AddVehicle.route -> Screen.AddVehicle
-                            Screen.Account.route -> Screen.Account
-                            Screen.PersonalInfo.route -> Screen.PersonalInfo
-                            Screen.SecuritySettings.route -> Screen.SecuritySettings
-                            else -> null
+            } else {
+                MileageCalculatorTheme {
+                    val navController = rememberNavController()
+                    val startDestination = if (currentUser == null) Screen.SignIn.route else Screen.TripLog.route
+                    var currentScreenTitle by remember { mutableStateOf(Screen.TripLog.label) }
+                    var canNavigateBack by remember { mutableStateOf(false) }
+                    val coroutineScope = rememberCoroutineScope()
+
+                    LaunchedEffect(navController) {
+                        navController.currentBackStackEntryFlow.collect { backStackEntry ->
+                            val screen = when (val route = backStackEntry.destination.route) {
+                                Screen.TripDetails.route -> Screen.TripDetails
+                                Screen.Profile.route -> Screen.Profile
+                                Screen.TripLog.route -> Screen.TripLog
+                                Screen.AddVehicle.route -> Screen.AddVehicle
+                                Screen.Account.route -> Screen.Account
+                                Screen.PersonalInfo.route -> Screen.PersonalInfo
+                                Screen.SecuritySettings.route -> Screen.SecuritySettings
+                                Screen.SignIn.route -> Screen.SignIn
+                                else -> null
+                            }
+                            currentScreenTitle = screen?.label ?: "App"
+                            canNavigateBack = navController.previousBackStackEntry != null
                         }
-                        currentScreenTitle = screen?.label ?: "App"
-                        canNavigateBack = navController.previousBackStackEntry != null
                     }
-                }
-                LaunchedEffect(Unit) {
-                    carViewModel.signInCompleted.collectLatest {
-                        navController.navigate(Screen.TripLog.route) {
-                            popUpTo(0)
-                            launchSingleTop = true
+                    LaunchedEffect(Unit) {
+                        carViewModel.signInCompleted.collectLatest {
+                            navController.navigate(Screen.TripLog.route) {
+                                popUpTo(0)
+                                launchSingleTop = true
+                            }
                         }
                     }
-                }
 
-                Scaffold(
-                    topBar = {
-                        LargeFlexibleTopAppBar(
-                            title = { Text(currentScreenTitle) },
-                            navigationIcon = {
-                                if (canNavigateBack && !bottomNavItems.any { it.route == currentScreenTitle.lowercase() }) {
-                                    IconButton(onClick = { navController.navigateUp() }) {
-                                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                    Scaffold(
+                        topBar = {
+                            if (currentScreenTitle != Screen.SignIn.label) {
+                                LargeFlexibleTopAppBar(
+                                    title = { Text(currentScreenTitle) },
+                                    navigationIcon = {
+                                        if (canNavigateBack && !bottomNavItems.any { it.route == currentScreenTitle.lowercase() }) {
+                                            IconButton(onClick = { navController.navigateUp() }) {
+                                                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                                            }
+                                        }
+                                    },
+                                    actions = {
+                                        if (currentUser != null) {
+                                            Text(
+                                                currentUser?.username?.take(10) ?: "",
+                                                modifier = Modifier.padding(end = 8.dp),
+                                                style = MaterialTheme.typography.bodySmall
+                                            )
+                                        }
+                                        IconButton(onClick = { navController.navigate(Screen.Account.route) }) {
+                                            Icon(Icons.Default.AccountCircle, contentDescription = "Account")
+                                        }
                                     }
+                                )
+                            }
+                        },
+                        bottomBar = {
+                            if (currentUser != null) {
+                                AppBottomNavigationBar(navController)
+                            }
+                        }
+                    ) { innerPadding ->
+                        AppNavHost(
+                            navController = navController,
+                            modifier = Modifier.padding(innerPadding),
+                            carViewModel = carViewModel,
+                            firebaseAuthClient = firebaseAuthClient,
+                            coroutineScope = coroutineScope,
+                            startDestination = startDestination,
+                            onGoogleSignInClick = {
+                                lifecycleScope.launch {
+                                    val signInResult = firebaseAuthClient.signInWithGoogle(this@MainActivity)
+                                    if (signInResult.errorMessage != null) {
+                                        Toast.makeText(this@MainActivity, signInResult.errorMessage, Toast.LENGTH_LONG).show()
+                                    }
+                                    carViewModel.onSignInResult(signInResult)
                                 }
                             },
-                            actions = {
-                                if (currentUser != null) {
-                                    Text(
-                                        currentUser.username?.take(10) ?: "",
-                                        modifier = Modifier.padding(end = 8.dp),
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                }
-                                IconButton(onClick = { navController.navigate(Screen.Account.route) }) {
-                                    Icon(Icons.Default.AccountCircle, contentDescription = "Account")
-                                }
-                            }
-                        )
-                    },
-                    bottomBar = {
-                        AppBottomNavigationBar(navController)
-                    }
-                ) { innerPadding ->
-                    AppNavHost(
-                        navController = navController,
-                        modifier = Modifier.padding(innerPadding),
-                        carViewModel = carViewModel,
-                        firebaseAuthClient = firebaseAuthClient,
-                        coroutineScope = coroutineScope,
-                        onGoogleSignInClick = {
-                            lifecycleScope.launch {
-                                val signInResult = firebaseAuthClient.signInWithGoogle(this@MainActivity)
-                                if (signInResult.errorMessage != null) {
-                                    Toast.makeText(this@MainActivity, signInResult.errorMessage, Toast.LENGTH_LONG).show()
-                                }
-                                carViewModel.onSignInResult(signInResult)
-                            }
-                        },
-                        onEmailSignInClick = { email, password ->
-                            lifecycleScope.launch {
-                                val result = firebaseAuthClient.signInWithEmailPassword(email, password)
-                                carViewModel.onSignInResult(result)
-                                if (result.errorMessage != null) {
-                                    Toast.makeText(this@MainActivity, result.errorMessage, Toast.LENGTH_LONG).show()
-                                }
-                            }
-                        },
-                        onEmailSignUpClick = { email, password ->
-                            lifecycleScope.launch {
-                                val result = firebaseAuthClient.createUserWithEmailPassword(email, password)
-                                carViewModel.onSignInResult(result)
-                                if (result.errorMessage != null) {
-                                    Toast.makeText(this@MainActivity, result.errorMessage, Toast.LENGTH_LONG).show()
-                                 }
-                            }
-                        },
-                        onSendOtpClick = { phoneNumber ->
-                            firebaseAuthClient.verifyPhoneNumber(
-                                activity = this@MainActivity,
-                                phoneNumber = phoneNumber,
-                                onCodeSent = { verificationId ->
-                                    this@MainActivity.phoneVerificationId = verificationId
-                                    Toast.makeText(this@MainActivity, "Code sent!", Toast.LENGTH_SHORT).show()
-                                },
-                                onVerificationFailed = { e ->
-                                    Toast.makeText(this@MainActivity, e.message, Toast.LENGTH_LONG).show()
-                                }
-                            )
-                        },
-                        onVerifyOtpClick = { otp ->
-                            this@MainActivity.phoneVerificationId?.let { verificationId ->
+                            onEmailSignInClick = { email, password ->
                                 lifecycleScope.launch {
-                                    val result = firebaseAuthClient.signInWithPhoneCredential(verificationId, otp)
+                                    val result = firebaseAuthClient.signInWithEmailPassword(email, password)
                                     carViewModel.onSignInResult(result)
                                     if (result.errorMessage != null) {
                                         Toast.makeText(this@MainActivity, result.errorMessage, Toast.LENGTH_LONG).show()
                                     }
                                 }
-                            } ?: Toast.makeText(this@MainActivity, "Please send code first.", Toast.LENGTH_LONG).show()
-                        }
-                    )
+                            },
+                            onEmailSignUpClick = { email, password ->
+                                lifecycleScope.launch {
+                                    val result = firebaseAuthClient.createUserWithEmailPassword(email, password)
+                                    carViewModel.onSignInResult(result)
+                                    if (result.errorMessage != null) {
+                                        Toast.makeText(this@MainActivity, result.errorMessage, Toast.LENGTH_LONG).show()
+                                     }
+                                }
+                            },
+                            onSendOtpClick = { phoneNumber ->
+                                firebaseAuthClient.verifyPhoneNumber(
+                                    activity = this@MainActivity,
+                                    phoneNumber = phoneNumber,
+                                    onCodeSent = { verificationId ->
+                                        this@MainActivity.phoneVerificationId = verificationId
+                                        Toast.makeText(this@MainActivity, "Code sent!", Toast.LENGTH_SHORT).show()
+                                    },
+                                    onVerificationFailed = { e ->
+                                        Toast.makeText(this@MainActivity, e.message, Toast.LENGTH_LONG).show()
+                                    }
+                                )
+                            },
+                            onVerifyOtpClick = { otp ->
+                                this@MainActivity.phoneVerificationId?.let { verificationId ->
+                                    lifecycleScope.launch {
+                                        val result = firebaseAuthClient.signInWithPhoneCredential(verificationId, otp)
+                                        carViewModel.onSignInResult(result)
+                                        if (result.errorMessage != null) {
+                                            Toast.makeText(this@MainActivity, result.errorMessage, Toast.LENGTH_LONG).show()
+                                        }
+                                    }
+                                } ?: Toast.makeText(this@MainActivity, "Please send code first.", Toast.LENGTH_LONG).show()
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -210,7 +228,7 @@ fun AppBottomNavigationBar(navController: NavHostController) {
 
         bottomNavItems.forEach { screen ->
             ShortNavigationBarItem(
-                icon = { Icon(screen.icon, contentDescription = screen.label) },
+                icon = { Icon(screen.icon!!, contentDescription = screen.label) },
                 label = { Text(screen.label) },
                 selected = currentDestination?.route == screen.route,
                 onClick = {
@@ -235,6 +253,7 @@ fun AppNavHost(
     carViewModel: CarViewModel,
     firebaseAuthClient: FirebaseAuthClient,
     coroutineScope: CoroutineScope,
+    startDestination: String,
     onGoogleSignInClick: () -> Unit,
     onEmailSignInClick: (String, String) -> Unit,
     onEmailSignUpClick: (String, String) -> Unit,
@@ -248,9 +267,15 @@ fun AppNavHost(
 
     NavHost(
         navController = navController,
-        startDestination = Screen.TripLog.route,
+        startDestination = startDestination,
         modifier = modifier
     ) {
+        composable(Screen.SignIn.route) {
+            SignInScreen(
+                onEmailSignInClick = onEmailSignInClick,
+                onGoogleSignInClick = onGoogleSignInClick,
+            )
+        }
         composable(Screen.Profile.route) {
             ProfileScreen(
                 navController = navController,
@@ -310,6 +335,9 @@ fun AppNavHost(
                     coroutineScope.launch {
                         firebaseAuthClient.signOut()
                         carViewModel.updateSignInState(null)
+                        navController.navigate(Screen.SignIn.route) {
+                            popUpTo(0)
+                        }
                         Log.d("MainActivity", "User signed out.")
                     }
                 },
@@ -344,7 +372,7 @@ fun AppNavHost(
         composable(Screen.PersonalInfo.route) { PersonalInfoScreen(carViewModel = carViewModel) }
         composable(Screen.SecuritySettings.route) { SecuritySettingsScreen(carViewModel = carViewModel) }
         composable(Screen.CurrencySettings.route) { CurrencySettingsScreen(carViewModel = carViewModel) }
-        composable(Screen.Activities.route) { }
+        composable(Screen.Activities.route) {  }
         }
 }
 

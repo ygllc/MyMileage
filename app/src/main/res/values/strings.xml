@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">MyMileage</string>
     <string name="default_web_client_id">981449638816-0a9mvq58gs6rangcqaibrenfl0jhdj4l.apps.googleusercontent.com</string>
+    <string name="microsoft_secret_value">y9m8Q~K2Nogtn_.yaLlL1Qc17tPqGfW5DrRUudoG</string>
 </resources>
