@@ -35,14 +35,13 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <!-- IMPORTANT: scheme must be your Android OAuth client ID -->
+                <!-- Firebase handles the OAuth callback via HTTPS, not custom scheme -->
                 <data
-                    android:scheme="981449638816-8ocik39s9dqv6cuvqhn738burn384rnk.apps.googleusercontent.com"
-                    android:host="firebase.auth"
-                    android:path="/oauth2redirect" />
+                    android:scheme="https"
+                    android:host="kmpl-20bee.firebaseapp.com"
+                    android:path="/__/auth/handler" />
             </intent-filter>
         </activity>
     </application>
 
 </manifest>
-
