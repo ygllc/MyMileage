@@ -170,6 +170,15 @@ class MainActivity : ComponentActivity() {
                                     carViewModel.onSignInResult(signInResult)
                                 }
                             },
+                            onMicrosoftSignInClick = {
+                                lifecycleScope.launch {
+                                    val signInResult = firebaseAuthClient.signInWithMicrosoft(this@MainActivity)
+                                    if (signInResult.errorMessage != null) {
+                                        Toast.makeText(this@MainActivity, signInResult.errorMessage, Toast.LENGTH_LONG).show()
+                                    }
+                                    carViewModel.onSignInResult(signInResult)
+                                }
+                            },
                             onEmailSignInClick = { email, password ->
                                 lifecycleScope.launch {
                                     val result = firebaseAuthClient.signInWithEmailPassword(email, password)
@@ -255,6 +264,7 @@ fun AppNavHost(
     coroutineScope: CoroutineScope,
     startDestination: String,
     onGoogleSignInClick: () -> Unit,
+    onMicrosoftSignInClick: () -> Unit,
     onEmailSignInClick: (String, String) -> Unit,
     onEmailSignUpClick: (String, String) -> Unit,
     onSendOtpClick: (String) -> Unit,
@@ -274,6 +284,7 @@ fun AppNavHost(
             SignInScreen(
                 onEmailSignInClick = onEmailSignInClick,
                 onGoogleSignInClick = onGoogleSignInClick,
+                onMicrosoftSignInClick = onMicrosoftSignInClick
             )
         }
         composable(Screen.Profile.route) {

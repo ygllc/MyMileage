@@ -16,9 +16,11 @@ import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.OAuthProvider
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
+import com.yg.mileage.R
 import kotlinx.coroutines.tasks.await
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.cancellation.CancellationException
@@ -43,11 +45,11 @@ class FirebaseAuthClient(
     private val credentialManager = CredentialManager.create(context)
 
     fun getSignedInUser(): UserData? = auth.currentUser?.toUserData()
-    
+
     // Get Google Identity token for Drive backup
     suspend fun getGoogleIdToken(activity: Activity): String? {
-        val webClientId = context.getString(com.yg.mileage.R.string.default_web_client_id)
-        
+        val webClientId = context.getString(R.string.default_web_client_id)
+
         val googleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(true)
             .setServerClientId(webClientId)
@@ -62,22 +64,22 @@ class FirebaseAuthClient(
                 request = request,
                 context = activity
             )
-            
+
             if (result.credential is CustomCredential && result.credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
                 val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(result.credential.data)
                 googleIdTokenCredential.idToken
             } else {
                 null
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
 
     // Google Sign-In with Credential Manager
     suspend fun signInWithGoogle(activity: Activity): SignInResult {
-        val webClientId = context.getString(com.yg.mileage.R.string.default_web_client_id)
-        
+        val webClientId = context.getString(R.string.default_web_client_id)
+
         val googleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(false)
             .setServerClientId(webClientId)
@@ -92,7 +94,7 @@ class FirebaseAuthClient(
                 request = request,
                 context = activity
             )
-            
+
             handleSignIn(result.credential)
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -114,7 +116,24 @@ class FirebaseAuthClient(
             SignInResult(data = null, errorMessage = message)
         }
     }
-    
+
+    // Microsoft Sign-In
+    suspend fun signInWithMicrosoft(activity: Activity): SignInResult {
+        return try {
+            val provider = OAuthProvider.newBuilder("microsoft.com").apply {
+                scopes = listOf("User.Read")
+                addCustomParameter("prompt", "select_account")
+                addCustomParameter("tenant", "consumers")
+            }.build()
+
+            val result = auth.startActivityForSignInWithProvider(activity, provider).await()
+            SignInResult(data = result.user?.toUserData(), errorMessage = null)
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            SignInResult(data = null, errorMessage = e.localizedMessage ?: e.message)
+        }
+    }
+
     private suspend fun handleSignIn(credential: Credential): SignInResult {
         // Check if credential is of type Google ID
         if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
@@ -129,7 +148,7 @@ class FirebaseAuthClient(
             return SignInResult(data = null, errorMessage = "Credential is not of type Google ID")
         }
     }
-    
+
     private suspend fun firebaseAuthWithGoogle(idToken: String): SignInResult {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         return try {
@@ -210,7 +229,7 @@ class FirebaseAuthClient(
         try {
             // Firebase sign out
             auth.signOut()
-            
+
             // Clear credential state from all credential providers
             val clearRequest = ClearCredentialStateRequest()
             credentialManager.clearCredentialState(clearRequest)

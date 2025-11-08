@@ -19,8 +19,8 @@ Browse your trip history and filter by all, completed, or draft trips.
 ### • 📋 Profile Overview:
 Manage your vehicle list in a simple, organized grid view.🐾
 
-### • 🔐 Google Sign-In:
-Sign in with Google, Email, and Phone.*
+### • 🔐 Multiple Sign-In Options:
+Sign in with Google, Microsoft, Email, and Phone.*
 
 Whether you want to track your fuel efficiency ⛽, maintain organized trip records 📖, or manage multiple vehicles 🚗, MyMileage provides the tools you need in a smooth, visually appealing, and reliable app.
 

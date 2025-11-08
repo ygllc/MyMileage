@@ -1,8 +1,6 @@
 package com.yg.mileage.auth
 
 // Added imports for Microsoft OAuth sign-in
-import android.app.Activity
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -45,9 +43,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthException
-import com.google.firebase.auth.OAuthProvider
 import com.yg.mileage.R
 import com.yg.mileage.ui.theme.MyMileage
 import com.yg.mileage.ui.theme.RobotoFlex
@@ -56,13 +51,14 @@ import com.yg.mileage.ui.theme.RobotoFlex
 @Composable
 fun SignInScreen(
     onEmailSignInClick: (String, String) -> Unit,
-    onGoogleSignInClick: () -> Unit
+    onGoogleSignInClick: () -> Unit,
+    onMicrosoftSignInClick: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var phoneLoginMessage by remember { mutableStateOf<String?>(null) }
 
-    val context = LocalContext.current
+    LocalContext.current
 
     Surface(modifier = Modifier.fillMaxSize(), color = MyMileage) {
         Column(
@@ -115,7 +111,7 @@ fun SignInScreen(
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                     HorizontalDivider(thickness = 1.dp, color = MyMileage)
-                    Text("Or sign in with,", fontWeight = FontWeight.Bold, color = MyMileage)
+                    Text("OR", fontWeight = FontWeight.Bold, color = MyMileage)
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Row {
@@ -141,51 +137,7 @@ fun SignInScreen(
                         }
                         // Microsoft sign-in button in SignInScreen.kt
                         IconButton(
-                            onClick = {
-                                val activity = context as? Activity
-                                if (activity == null) {
-                                    phoneLoginMessage = "Unable to start Microsoft sign-in (no Activity)"
-                                } else {
-                                    val auth = FirebaseAuth.getInstance()
-
-                                    // Check for pending auth result first
-                                    val pending = auth.pendingAuthResult
-                                    if (pending != null) {
-                                        pending
-                                            .addOnSuccessListener { result ->
-                                                val user = result.user
-                                                phoneLoginMessage = "Signed in: ${user?.email ?: user?.displayName ?: "(no-email)"}"
-                                                Log.d("SignInScreen", "Microsoft sign-in successful: ${user?.uid}")
-                                            }
-                                            .addOnFailureListener { exception ->
-                                                val errorMessage = handleMicrosoftAuthError(exception)
-                                                phoneLoginMessage = errorMessage
-                                                Log.e("SignInScreen", "Microsoft sign-in failed", exception)
-                                            }
-                                    } else {
-                                        // Build the provider
-                                        val provider = OAuthProvider.newBuilder("microsoft.com").apply {
-                                            scopes = listOf("User.Read")
-                                            addCustomParameter("prompt", "select_account")
-                                            // Try "common" if "consumers" doesn't work
-                                            addCustomParameter("tenant", "consumers")
-                                        }.build()
-
-                                        // Start the sign-in flow
-                                        auth.startActivityForSignInWithProvider(activity, provider)
-                                            .addOnSuccessListener { authResult ->
-                                                val user = authResult.user
-                                                phoneLoginMessage = "Signed in: ${user?.email ?: user?.displayName ?: "(no-email)"}"
-                                                Log.d("SignInScreen", "Microsoft sign-in successful: ${user?.uid}")
-                                            }
-                                            .addOnFailureListener { exception ->
-                                                val errorMessage = handleMicrosoftAuthError(exception)
-                                                phoneLoginMessage = errorMessage
-                                                Log.e("SignInScreen", "Microsoft sign-in failed", exception)
-                                            }
-                                    }
-                                }
-                            },
+                            onClick = onMicrosoftSignInClick,
                             colors = IconButtonDefaults.iconButtonColors(containerColor = Color.White),
                             shape = RoundedCornerShape(0.dp),
                         ) {
@@ -220,26 +172,8 @@ fun SignInScreen(
     }
 }
 
-// Helper function to handle Microsoft authentication errors
-private fun handleMicrosoftAuthError(exception: Exception): String {
-    return if (exception is FirebaseAuthException) {
-        when (exception.errorCode) {
-            "ERROR_INVALID_CREDENTIAL" -> {
-                Log.e("SignInScreen", "Invalid credential details: ${exception.message}")
-                "Invalid Microsoft credentials. Please check Firebase and Azure AD configuration."
-            }
-            "ERROR_OPERATION_NOT_ALLOWED" -> "Microsoft sign-in is not enabled in Firebase Console."
-            "ERROR_ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL" -> "An account already exists with this email using a different sign-in method."
-            "ERROR_WEB_CONTEXT_CANCELED" -> "Sign-in cancelled by user."
-            else -> "Microsoft sign-in failed: ${exception.errorCode} - ${exception.message}"
-        }
-    } else {
-        "Microsoft sign-in failed: ${exception.localizedMessage ?: exception.message}"
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
 fun SignInScreenPreview() {
-    SignInScreen(onEmailSignInClick = { _, _ -> }, onGoogleSignInClick = {})
+    SignInScreen(onEmailSignInClick = { _, _ -> }, onGoogleSignInClick = {}, onMicrosoftSignInClick = {})
 }

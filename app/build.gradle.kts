@@ -28,7 +28,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true   // AFTER: Enable code shrinking and obfuscation
-
+            isShrinkResources = true  // AFTER: Enable code shrinking and obfuscation
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
@@ -59,6 +59,7 @@ android {
 
 
 dependencies {
+    /** Coil */
     implementation(libs.coil.compose)
     /** Core Android & Kotlin */
     implementation(libs.androidx.core.ktx)
@@ -117,11 +118,13 @@ dependencies {
 //    implementation("androidx.camera:camera-camera2")
 //    implementation("androidx.camera:camera-lifecycle")
 //    implementation("androidx.camera:camera-view")
-//    // ML Kit Text Recognition for Latin script (on-device)
+    // ML Kit Text Recognition for Latin script (on-device)
 //    implementation(libs.play.services.mlkit.text.recognition)
-//    // Accompanist Permissions for handling runtime camera permissions
+    // Accompanist Permissions for handling runtime camera permissions
 //    implementation(libs.accompanist.permissions)
-
+    /** Play In-app updates */
+    implementation(libs.app.update)
+    implementation(libs.app.update.ktx)
 
 
 }
