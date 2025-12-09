@@ -1,5 +1,5 @@
 <div align="center">
-<img width="1024" height="500" alt="MyMileage (1)" src="https://github.com/user-attachments/assets/6127238e-bf93-46d9-bd9d-642ff0c63626" />
+<img width="1024" height="500" alt="MyMileage (2)" src="https://github.com/user-attachments/assets/5b73998e-f613-4b1f-9a6c-801cded48c58" />
 
 ## Introducing MyMileage,
 
