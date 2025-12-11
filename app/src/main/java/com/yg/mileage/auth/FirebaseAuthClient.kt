@@ -1,3 +1,21 @@
+/*
+ * MyMileage – Your Smart Vehicle Mileage Tracker
+ * Copyright (C) 2025  Yojit Ghadi
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.yg.mileage.auth
 
 import android.app.Activity
@@ -21,6 +39,7 @@ import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
 import com.yg.mileage.R
+import com.yg.mileage.data.Repository
 import kotlinx.coroutines.tasks.await
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.cancellation.CancellationException
@@ -40,7 +59,8 @@ data class SignInResult(
 
 class FirebaseAuthClient(
     private val context: Context,
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
+    private val repository: Repository
 ) {
     private val credentialManager = CredentialManager.create(context)
 
@@ -152,7 +172,11 @@ class FirebaseAuthClient(
     private suspend fun firebaseAuthWithGoogle(idToken: String): SignInResult {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         return try {
-            val user = auth.signInWithCredential(credential).await().user
+            val result = auth.signInWithCredential(credential).await()
+            val user = result.user
+            user?.let {
+                it.email?.let { it1 -> repository.restoreFromDrive(it.uid, it1) }
+            }
             SignInResult(data = user?.toUserData(), errorMessage = null)
         } catch (e: Exception) {
             if (e is CancellationException) throw e

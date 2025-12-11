@@ -1,3 +1,23 @@
+/*
+ * MyMileage – Your Smart Vehicle Mileage Tracker
+ * Copyright (C) 2025  Yojit Ghadi
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.yg.mileage
 
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +35,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.rounded.List
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.PendingActions
 import androidx.compose.material.icons.outlined.Done
@@ -22,6 +44,8 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowCircleRight
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.FilterList
+import androidx.compose.material.icons.rounded.GroupAdd
 import androidx.compose.material.icons.rounded.PendingActions
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.ButtonGroupDefaults
@@ -29,23 +53,38 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FloatingActionButtonMenu
+import androidx.compose.material3.FloatingActionButtonMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.material3.ToggleFloatingActionButton
+import androidx.compose.material3.ToggleFloatingActionButtonDefaults.animateIcon
+import androidx.compose.material3.animateFloatingActionButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -66,6 +105,8 @@ fun TripLogScreen(
 
     var filterIndex by remember { mutableIntStateOf(0) }
     val coroutineScope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState()
+    var showBottomSheet by remember { mutableStateOf(false) }
 
     // Filtered trips according to filter selection
     val filteredTrips = remember(trips, filterIndex) {
@@ -73,6 +114,22 @@ fun TripLogScreen(
             1 -> trips.filter { it.status == TripStatus.COMPLETED }
             2 -> trips.filter { it.status == TripStatus.DRAFT }
             else -> trips
+        }
+    }
+
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false },
+            sheetState = sheetState
+        ) {
+            FilterBottomSheetContent(onApply = {
+                coroutineScope.launch { sheetState.hide() }.invokeOnCompletion {
+                    if (!sheetState.isVisible) {
+                        showBottomSheet = false
+                    }
+                }
+                // TODO: Apply filter logic
+            })
         }
     }
 
@@ -87,7 +144,8 @@ fun TripLogScreen(
             // FILTER SEGMENTED BUTTONS AT THE TOP
             TripHistoryFilterSegmented(
                 selectedIndex = filterIndex,
-                onSelected = { filterIndex = it }
+                onSelected = { filterIndex = it },
+                onFilterClick = { showBottomSheet = true }
             )
 
             Spacer(Modifier.height(12.dp)) // space between filter and list
@@ -122,6 +180,11 @@ fun TripLogScreen(
                                 coroutineScope.launch {
                                     carViewModel.deleteTrip(trip.id)
                                 }
+                            },
+                            onContinue = {
+                                coroutineScope.launch {
+                                    carViewModel.continueTrip()
+                                }
                             }
                         )
                     }
@@ -130,33 +193,84 @@ fun TripLogScreen(
         }
 
         // Floating Action Button for adding new trip
-        ExtendedFloatingActionButton(
-            onClick = {
-                carViewModel.setEditingTrip(null) // Clear any existing editing trip
-                onNavigateToTripDetails()
-            },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp),
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.Add,
-                contentDescription = "Add New Trip",
-            )
-            Text(
-            text = "  New Trip"
-            )
+        Box(Modifier.fillMaxSize()) {
+            var fabMenuExpanded by rememberSaveable { mutableStateOf(false) }
+
+            FloatingActionButtonMenu(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+                expanded = fabMenuExpanded,
+                button = {
+                    ToggleFloatingActionButton(
+                        modifier = Modifier
+                            .semantics {
+                                stateDescription = if (fabMenuExpanded) "Expanded" else "Collapsed"
+                                contentDescription = "Toggle menu"
+                            }
+                            .animateFloatingActionButton(
+                                visible = true, alignment = Alignment.BottomEnd
+                            ),
+                        checked = fabMenuExpanded,
+                        onCheckedChange = { fabMenuExpanded = !fabMenuExpanded }
+                    ) {
+                        val imageVector by remember {
+                            derivedStateOf {
+                                if (checkedProgress > 0.5f) Icons.Filled.Close else Icons.Filled.Add
+                            }
+                        }
+                        Icon(
+                            painter = rememberVectorPainter(imageVector),
+                            contentDescription = null,
+                            modifier = Modifier.animateIcon({ checkedProgress })
+                        )
+                    }
+                }
+            ) {
+                // --- Menu Content ---
+
+                // Item 1: New Trip
+                FloatingActionButtonMenuItem(
+                    onClick = {
+                        fabMenuExpanded = false
+                        carViewModel.setEditingTrip(null)
+                        onNavigateToTripDetails()
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Rounded.Add,
+                            contentDescription = "Add New Trip"
+                        )
+                    },
+                    text = { Text(text = "New Trip") },
+                )
+
+                // --- Item 2: New Group Trip (Newly Added) ---
+                FloatingActionButtonMenuItem(
+                    onClick = {
+                        fabMenuExpanded = false
+                        // TODO: Add your viewmodel logic for group trip
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Rounded.GroupAdd, // <-- New Icon
+                            contentDescription = "New Group Trip"
+                        )
+                    },
+                    text = { Text(text = "New Group Trip") }, // <-- New Text
+                )
+
+                // You can continue to add more items here...
+            }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TripHistoryFilterSegmented(
     selectedIndex: Int,
-    onSelected: (Int) -> Unit
+    onSelected: (Int) -> Unit,
+    onFilterClick: () -> Unit
 ) {
     val options = listOf("All", "Done", "Draft")
     val checkedIcons = listOf(
@@ -180,7 +294,13 @@ fun TripHistoryFilterSegmented(
             ToggleButton(
                 checked = selectedIndex == index,
                 onCheckedChange = { onSelected(index) },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                shapes =
+                when (index) {
+                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                    options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                }
             ) {
                 Icon(
                     if (selectedIndex == index) checkedIcons[index] else unCheckedIcons[index],
@@ -190,17 +310,30 @@ fun TripHistoryFilterSegmented(
                 Text(label)
             }
         }
+        FilledTonalIconButton(
+            onClick = onFilterClick,
+            shape = IconButtonDefaults.smallSquareShape,
+            colors = IconButtonDefaults.filledTonalIconButtonColors(
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.FilterList,
+                contentDescription = "Filter"
+            )
+        }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TripCard(
     trip: Trip,
     dateFormat: SimpleDateFormat,
     defaultCurrency: Currency?,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onContinue: () -> Unit
 ) {
     val isDraft = trip.status == TripStatus.DRAFT
     val cardColor = if (isDraft)
@@ -210,7 +343,7 @@ fun TripCard(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.extraLarge,
+        shape = MyMileageShapeDefaults.cardShape(),
         colors = CardDefaults.cardColors(containerColor = cardColor),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 0.dp,
@@ -220,107 +353,116 @@ fun TripCard(
             draggedElevation = 0.dp,
             disabledElevation = 0.dp
         )
-    ){
-        Row(
+    ) {
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 18.dp, vertical = 15.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = trip.vehicleName,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = if (isDraft) MaterialTheme.colorScheme.error
-                    else MaterialTheme.colorScheme.onSurfaceVariant
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f)
                 )
-                Surface(
-                    shape = MaterialTheme.shapes.small,
-                    color = if (isDraft) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(vertical = 1.dp)
-                ) {
-                    Text(
-                        text = trip.status.name,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (isDraft) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
-                    )
-                }
-                Text(
-                    text = "Start: ${trip.startMileage ?: "--"} km • End: ${trip.endMileage ?: "--"} km",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = "Fuel: ${trip.fuelFilled ?: "--"} Ltr",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                trip.tripDistance?.let {
-                    Text(
-                        text = "Distance: $it km",
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-                trip.fuelEfficiency?.let {
-                    Text(
-                        text = "Efficiency: $it km/Ltr",
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-                trip.fuelCost?.let { cost ->
-                    val currencySymbol = defaultCurrency?.symbol ?: trip.currencyId ?: ""
-                    Text(
-                        text = "Fuel Cost: $currencySymbol${String.format("%.2f", cost)}",
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-                Text(
-                    text = "Updated: ${dateFormat.format(trip.updatedAt)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                )
-            }
-            Row {
-                IconButton(onClick = {TODO()}) {
-                    Icon(
-                        imageVector = Icons.Rounded.ArrowCircleRight,
-                        "Continue",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-                IconButton(onClick = onEdit) {
-                    Icon(
-                        imageVector = Icons.Rounded.Edit,
-                        contentDescription = "Edit",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-                IconButton(onClick = onDelete) {
-                    Icon(
-                        imageVector = Icons.Rounded.Delete,
-                        contentDescription = "Delete",
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
-                IconButton(onClick = { TODO() }) {
-                    Icon(
-                        imageVector = Icons.Rounded.Share,
-                        contentDescription = "Share",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
+                Row {
+                    IconButton(onClick = onContinue) {
+                        Icon(
+                            imageVector = Icons.Rounded.ArrowCircleRight,
+                            "Continue",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    IconButton(onClick = onEdit) {
+                        Icon(
+                            imageVector = Icons.Rounded.Edit,
+                            contentDescription = "Edit",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    IconButton(onClick = onDelete) {
+                        Icon(
+                            imageVector = Icons.Rounded.Delete,
+                            contentDescription = "Delete",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                    IconButton(onClick = { TODO() }) {
+                        Icon(
+                            imageVector = Icons.Rounded.Share,
+                            contentDescription = "Share",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
+
+            Surface(
+                shape = MaterialTheme.shapes.small,
+                color = if (isDraft) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(vertical = 1.dp)
+            ) {
+                Text(
+                    text = trip.status.name,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (isDraft) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
+                )
+            }
+            Text(
+                text = "Start: ${trip.startMileage ?: "--"} km • End: ${trip.endMileage ?: "--"} km",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = "Fuel: ${trip.fuelFilled ?: "--"} Ltr",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            trip.tripDistance?.let {
+                Text(
+                    text = "Distance: $it km",
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+            trip.fuelEfficiency?.let {
+                Text(
+                    text = "Efficiency: $it km/Ltr",
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+            trip.fuelCost?.let { cost ->
+                val currencySymbol = defaultCurrency?.symbol ?: trip.currencyId ?: ""
+                Text(
+                    text = "Fuel Cost: $currencySymbol${String.format(Locale.getDefault(), "%.2f", cost)}",
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+            Text(
+                text = "Updated: ${dateFormat.format(trip.updatedAt)}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            )
         }
     }
+}
+
+@Composable
+fun FilterBottomSheetContent(onApply: () -> Unit) {
+    Spacer(modifier = Modifier.padding(25.dp))
+    Text(text = "                              :)")
+    Spacer(modifier = Modifier.padding(25.dp))
 }

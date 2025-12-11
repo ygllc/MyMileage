@@ -1,3 +1,21 @@
+/*
+ * MyMileage – Your Smart Vehicle Mileage Tracker
+ * Copyright (C) 2025  Yojit Ghadi
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -16,8 +34,8 @@ android {
         applicationId = "com.yg.mileage"
         minSdk = 26
         targetSdk = 36
-        versionCode = 4
-        versionName = "2.4"
+        versionCode = 5
+        versionName = "2.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -73,10 +91,10 @@ dependencies {
     implementation(libs.androidx.material3.window.size.class1)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.ui.text)
+    implementation(libs.androidx.compose.foundation.layout)
     /** Room */
     implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.ui.text)
-    implementation(libs.googleid)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
     androidTestImplementation(libs.androidx.room.testing)
@@ -92,6 +110,7 @@ dependencies {
     /** Credential Manager */
     implementation(libs.androidx.credential)
     implementation(libs.androidx.credential.play.services.auth)
+    implementation(libs.googleid)
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -111,17 +130,14 @@ dependencies {
     /** Fonts */
     implementation(libs.androidx.ui.text.google.fonts)
     /** CameraX */
-//    val cameraBom = platform(libs.androidx.camera.bom)
-//    implementation(cameraBom)
-//    androidTestImplementation(cameraBom)
-//    implementation("androidx.camera:camera-core")
-//    implementation("androidx.camera:camera-camera2")
-//    implementation("androidx.camera:camera-lifecycle")
-//    implementation("androidx.camera:camera-view")
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
     // ML Kit Text Recognition for Latin script (on-device)
-//    implementation(libs.play.services.mlkit.text.recognition)
+    implementation(libs.play.services.mlkit.text.recognition)
     // Accompanist Permissions for handling runtime camera permissions
-//    implementation(libs.accompanist.permissions)
+    implementation(libs.accompanist.permissions)
     /** Play In-app updates */
     implementation(libs.app.update)
     implementation(libs.app.update.ktx)
