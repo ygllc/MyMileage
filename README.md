@@ -6,8 +6,9 @@
 MyMileage is a modern Android app that makes tracking your vehicle’s mileage 🚙, fuel efficiency 📊, and trip history 📅 both simple and accurate. Designed with Jetpack Compose and Material 3 Expressive's expressive UI, it delivers a clean, user-friendly experience for drivers of all kinds.
 
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/yg-sudo/MyMileage/total)
-![GitHub Release](https://img.shields.io/github/v/release/yg-sudo/MyMileage?include_prereleases&logo=github)
+![GitHub Release](https://img.shields.io/github/v/release/yg-sudo/MyMileage?include_prereleases&logo=github&logoSize=auto&link=https%3A%2F%2Fwww.github.com%2Fyg-sudo%2FMyMileage%2Freleases)
 ![Static Badge](https://img.shields.io/badge/API-26-blue?logo=android&logoColor=%2359AA68)
+![GitHub License](https://img.shields.io/github/license/yg-sudo/MyMileage?logo=gnu&link=https%3A%2F%2Fwww.gnu.org%2Flicenses%2Fgpl-3.0.en.html)
 
 <img width="239" height="71" alt="GetItOnGooglePlay_Badge_Web_color_English" src="https://github.com/user-attachments/assets/4dddbe98-ba72-4285-bb9d-87641528dfbc" />
 </div>
