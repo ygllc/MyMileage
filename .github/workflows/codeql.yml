@@ -32,7 +32,7 @@ jobs:
 
     env:
       # Change this if your project needs a different JDK (e.g., "17")
-      JAVA_VERSION: '11'
+      JAVA_VERSION: '17'
 
     strategy:
       fail-fast: false

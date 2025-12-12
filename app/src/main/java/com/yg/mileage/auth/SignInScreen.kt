@@ -1,3 +1,21 @@
+/*
+ * MyMileage – Your Smart Vehicle Mileage Tracker
+ * Copyright (C) 2025  Yojit Ghadi
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.yg.mileage.auth
 
 // Added imports for Microsoft OAuth sign-in
@@ -45,14 +63,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yg.mileage.R
 import com.yg.mileage.ui.theme.MyMileage
-import com.yg.mileage.ui.theme.RobotoFlex
+import com.yg.mileage.ui.theme.robotoFlexTopAppBar
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SignInScreen(
     onEmailSignInClick: (String, String) -> Unit,
     onGoogleSignInClick: () -> Unit,
-    onMicrosoftSignInClick: () -> Unit
+    onMicrosoftSignInClick: () -> Unit,
+    onSignUpClick: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -81,8 +100,8 @@ fun SignInScreen(
                     modifier = Modifier.padding(32.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("Log in", fontFamily = RobotoFlex, fontWeight = FontWeight.Black, fontSize = 24.sp)
-                    Text("Sign in to continue.", fontSize = 16.sp, color = Color.Gray)
+                    Text("Log in", fontFamily = robotoFlexTopAppBar, fontWeight = FontWeight.Black, fontSize = 24.sp)
+                    Text("Sign in to continue.", fontFamily = robotoFlexTopAppBar, fontSize = 16.sp, color = Color.Gray)
                     Spacer(modifier = Modifier.height(32.dp))
 
                     OutlinedTextField(
@@ -111,7 +130,7 @@ fun SignInScreen(
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                     HorizontalDivider(thickness = 1.dp, color = MyMileage)
-                    Text("OR", fontWeight = FontWeight.Bold, color = MyMileage)
+                    Text("OR", fontFamily = robotoFlexTopAppBar, fontWeight = FontWeight.Bold, color = MyMileage)
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Row {
@@ -162,9 +181,17 @@ fun SignInScreen(
                     TextButton(
                         onClick = { /* Handle forgot password */ },
                         modifier = Modifier.align(Alignment.End),
+                        colors = ButtonDefaults.textButtonColors(contentColor = MyMileage)
                     ) {
                         Text("Forgot Password?",
                         )
+                    }
+                    TextButton(
+                        onClick = { onSignUpClick() },
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        colors = ButtonDefaults.textButtonColors(contentColor = MyMileage)
+                    ) {
+                        Text("Don't have an account? Sign up")
                     }
                 }
             }
@@ -175,5 +202,5 @@ fun SignInScreen(
 @Preview(showBackground = true)
 @Composable
 fun SignInScreenPreview() {
-    SignInScreen(onEmailSignInClick = { _, _ -> }, onGoogleSignInClick = {}, onMicrosoftSignInClick = {})
+    SignInScreen(onEmailSignInClick = { _, _ -> }, onGoogleSignInClick = {}, onMicrosoftSignInClick = {}, onSignUpClick = {})
 }

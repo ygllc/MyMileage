@@ -1,3 +1,21 @@
+/*
+ * MyMileage – Your Smart Vehicle Mileage Tracker
+ * Copyright (C) 2025  Yojit Ghadi
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 
 package com.yg.mileage
@@ -48,6 +66,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.yg.mileage.ui.theme.robotoFlexTopAppBar
 import kotlinx.coroutines.launch
 import java.text.DateFormat.getDateInstance
 import java.text.DecimalFormat
@@ -104,14 +123,6 @@ fun CurrencySettingsScreenContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        item {
-            Text(
-                text = "Currency & Fuel Prices",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
         // Default Currency Section
         item {
             Card(
@@ -124,7 +135,7 @@ fun CurrencySettingsScreenContent(
                 ) {
                     Text(
                         text = "Default Currency",
-                        style = MaterialTheme.typography.titleMedium,
+                        fontFamily = robotoFlexTopAppBar,
                         fontWeight = FontWeight.SemiBold
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -136,7 +147,7 @@ fun CurrencySettingsScreenContent(
                         ) {
                             Text(
                                 text = "${defaultCurrency.symbol} ${defaultCurrency.name} (${defaultCurrency.code})",
-                                style = MaterialTheme.typography.bodyLarge
+                                fontFamily = robotoFlexTopAppBar
                             )
                             IconButton(onClick = { editingCurrency = defaultCurrency }) {
                                 Icon(Icons.Filled.Edit, contentDescription = "Edit Currency")

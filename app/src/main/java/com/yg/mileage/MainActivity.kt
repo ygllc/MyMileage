@@ -1,3 +1,21 @@
+/*
+ * MyMileage – Your Smart Vehicle Mileage Tracker
+ * Copyright (C) 2025  Yojit Ghadi
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 @file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
 
 package com.yg.mileage
@@ -10,21 +28,24 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShortNavigationBar
 import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.Text
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -35,7 +56,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
@@ -47,12 +71,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import coil.compose.AsyncImage
 import com.yg.mileage.auth.FirebaseAuthClient
 import com.yg.mileage.auth.SignInScreen
+import com.yg.mileage.auth.SignUpScreen
 import com.yg.mileage.data.Repository
 import com.yg.mileage.navigation.Screen
 import com.yg.mileage.navigation.bottomNavItems
 import com.yg.mileage.ui.theme.MileageCalculatorTheme
+import com.yg.mileage.ui.theme.robotoFlexTopAppBar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -68,9 +95,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        firebaseAuthClient = FirebaseAuthClient(applicationContext)
-
         val repository = Repository.getRepository(applicationContext)
+        firebaseAuthClient = FirebaseAuthClient(applicationContext, repository = repository)
+
         val carViewModelFactory = CarViewModelFactory(repository)
 
         setContent {
@@ -85,13 +112,26 @@ class MainActivity : ComponentActivity() {
 
             if (showLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                    ContainedLoadingIndicator(
+                        polygons = listOf(
+                            MaterialShapes.SoftBurst,
+                            MaterialShapes.Cookie9Sided,
+                            MaterialShapes.Pentagon,
+                            MaterialShapes.Pill,
+                            MaterialShapes.Sunny,
+                            MaterialShapes.Cookie4Sided,
+                            MaterialShapes.Oval,
+                            MaterialShapes.VerySunny,
+                            MaterialShapes.Ghostish,
+                            MaterialShapes.Cookie12Sided
+                        )
+                    )
                 }
             } else {
                 MileageCalculatorTheme {
                     val navController = rememberNavController()
-                    val startDestination = if (currentUser == null) Screen.SignIn.route else Screen.TripLog.route
-                    var currentScreenTitle by remember { mutableStateOf(Screen.TripLog.label) }
+                    val startDestination = if (currentUser == null) Screen.SignIn.route else Screen.Trips.route
+                    var currentScreenTitle by remember { mutableStateOf(Screen.Trips.label) }
                     var canNavigateBack by remember { mutableStateOf(false) }
                     val coroutineScope = rememberCoroutineScope()
 
@@ -99,22 +139,25 @@ class MainActivity : ComponentActivity() {
                         navController.currentBackStackEntryFlow.collect { backStackEntry ->
                             val screen = when (val route = backStackEntry.destination.route) {
                                 Screen.TripDetails.route -> Screen.TripDetails
-                                Screen.Profile.route -> Screen.Profile
-                                Screen.TripLog.route -> Screen.TripLog
+                                Screen.Vehicles.route -> Screen.Vehicles
+                                Screen.Trips.route -> Screen.Trips
                                 Screen.AddVehicle.route -> Screen.AddVehicle
                                 Screen.Account.route -> Screen.Account
                                 Screen.PersonalInfo.route -> Screen.PersonalInfo
                                 Screen.SecuritySettings.route -> Screen.SecuritySettings
+                                Screen.CurrencySettings.route -> Screen.CurrencySettings
+                                Screen.Activities.route -> Screen.Activities
                                 Screen.SignIn.route -> Screen.SignIn
+                                Screen.SignUp.route -> Screen.SignUp
                                 else -> null
                             }
-                            currentScreenTitle = screen?.label ?: "App"
+                            currentScreenTitle = screen?.label ?: "MyMileage"
                             canNavigateBack = navController.previousBackStackEntry != null
                         }
                     }
                     LaunchedEffect(Unit) {
                         carViewModel.signInCompleted.collectLatest {
-                            navController.navigate(Screen.TripLog.route) {
+                            navController.navigate(Screen.Trips.route) {
                                 popUpTo(0)
                                 launchSingleTop = true
                             }
@@ -123,9 +166,9 @@ class MainActivity : ComponentActivity() {
 
                     Scaffold(
                         topBar = {
-                            if (currentScreenTitle != Screen.SignIn.label) {
+                            if (currentScreenTitle != Screen.SignIn.label && currentScreenTitle != Screen.SignUp.label) {
                                 LargeFlexibleTopAppBar(
-                                    title = { Text(currentScreenTitle) },
+                                    title = { Text(currentScreenTitle, fontFamily = robotoFlexTopAppBar) },
                                     navigationIcon = {
                                         if (canNavigateBack && !bottomNavItems.any { it.route == currentScreenTitle.lowercase() }) {
                                             IconButton(onClick = { navController.navigateUp() }) {
@@ -134,15 +177,33 @@ class MainActivity : ComponentActivity() {
                                         }
                                     },
                                     actions = {
-                                        if (currentUser != null) {
+                                        if (currentUser?.username != null) {
                                             Text(
-                                                currentUser?.username?.take(10) ?: "",
+                                                "Welcome back, ${currentUser!!.username}!",
                                                 modifier = Modifier.padding(end = 8.dp),
-                                                style = MaterialTheme.typography.bodySmall
+                                                style = MaterialTheme.typography.bodySmall.copy(textAlign = TextAlign.Start) // Use TextAlign.End for better RTL support)
                                             )
                                         }
                                         IconButton(onClick = { navController.navigate(Screen.Account.route) }) {
-                                            Icon(Icons.Default.AccountCircle, contentDescription = "Account")
+                                            if (currentUser?.profilePictureUrl != null) {
+                                                AsyncImage(
+                                                    model = currentUser!!.profilePictureUrl,
+                                                    contentDescription = "Vehicles Picture",
+                                                    modifier = Modifier
+                                                        .size(32.dp)
+                                                        .clip(MaterialShapes.Cookie12Sided.toShape()),
+                                                    contentScale = ContentScale.Crop
+                                                )
+                                            } else {
+                                                Icon(
+                                                    imageVector = Icons.Default.AccountCircle,
+                                                    contentDescription = "Default Vehicles Picture",
+                                                    modifier = Modifier
+                                                        .size(32.dp)
+                                                        .clip(MaterialShapes.Cookie12Sided.toShape())
+
+                                                )
+                                            }
                                         }
                                     }
                                 )
@@ -194,6 +255,10 @@ class MainActivity : ComponentActivity() {
                                     carViewModel.onSignInResult(result)
                                     if (result.errorMessage != null) {
                                         Toast.makeText(this@MainActivity, result.errorMessage, Toast.LENGTH_LONG).show()
+                                     } else {
+                                        navController.navigate(Screen.Trips.route) {
+                                            popUpTo(0)
+                                        }
                                      }
                                 }
                             },
@@ -237,7 +302,7 @@ fun AppBottomNavigationBar(navController: NavHostController) {
 
         bottomNavItems.forEach { screen ->
             ShortNavigationBarItem(
-                icon = { Icon(screen.icon!!, contentDescription = screen.label) },
+                icon = { Icon(screen.icon!!, contentDescription = screen.description) },
                 label = { Text(screen.label) },
                 selected = currentDestination?.route == screen.route,
                 onClick = {
@@ -284,10 +349,18 @@ fun AppNavHost(
             SignInScreen(
                 onEmailSignInClick = onEmailSignInClick,
                 onGoogleSignInClick = onGoogleSignInClick,
-                onMicrosoftSignInClick = onMicrosoftSignInClick
+                onMicrosoftSignInClick = onMicrosoftSignInClick,
+                onSignUpClick = { navController.navigate(Screen.SignUp.route) }
             )
         }
-        composable(Screen.Profile.route) {
+        composable(Screen.SignUp.route) {
+            SignUpScreen(
+                onSignUpClick = onEmailSignUpClick,
+                onSignInClick = { navController.navigateUp() },
+                onBackClick = { navController.navigateUp() }
+            )
+        }
+        composable(Screen.Vehicles.route) {
             ProfileScreen(
                 navController = navController,
                 savedVehicles = savedVehicles,
@@ -304,7 +377,7 @@ fun AppNavHost(
                 canDeleteVehicle = { vehicleId: String -> runBlocking { carViewModel.canDeleteVehicle(vehicleId) } }
             )
         }
-        composable(Screen.TripLog.route) {
+        composable(Screen.Trips.route) {
             TripLogScreen(
                 carViewModel = carViewModel,
                 onNavigateToTripDetails = { navController.navigate("trip_details") }
@@ -383,9 +456,10 @@ fun AppNavHost(
         composable(Screen.PersonalInfo.route) { PersonalInfoScreen(carViewModel = carViewModel) }
         composable(Screen.SecuritySettings.route) { SecuritySettingsScreen(carViewModel = carViewModel) }
         composable(Screen.CurrencySettings.route) { CurrencySettingsScreen(carViewModel = carViewModel) }
-        composable(Screen.Activities.route) {  }
+        composable(Screen.Activities.route) { ActivitiesScreen(carViewModel = carViewModel) }
         }
 }
+
 
 
 @Preview(showBackground = true)

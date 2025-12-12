@@ -1,3 +1,21 @@
+/*
+ * MyMileage – Your Smart Vehicle Mileage Tracker
+ * Copyright (C) 2025 Yojit Ghadi
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.yg.mileage.auth
 
 import android.content.Context
@@ -15,10 +33,17 @@ import com.google.gson.reflect.TypeToken
 import com.yg.mileage.Trip
 import com.yg.mileage.Vehicle
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
+
+data class DriveBackupData(
+    val vehicles: List<Vehicle>?,
+    val trips: List<Trip>?,
+    val legacyCars: List<String>?
+)
 
 class DriveService(private val context: Context) {
 
@@ -32,13 +57,13 @@ class DriveService(private val context: Context) {
             GsonFactory.getDefaultInstance(),
             credential
         )
-            .setApplicationName("Mileage Calculator") // Replace with your app name
+            .setApplicationName("MyMileage") // Replace with your app name
             .build()
     }
 
-    private val CAR_DATA_FILENAME = "mileage_app_cars.json"
-    private val VEHICLE_DATA_FILENAME = "mileage_app_vehicles.json"
-    private val TRIP_DATA_FILENAME = "mileage_app_trips.json"
+    private val carDataFilename = "mymileage_app_cars.json"
+    private val vehicleDataFilename = "mymileage_app_vehicles.json"
+    private val tripDataFilename = "mymileage_app_trips.json"
 
 
     // New methods for Vehicle objects
@@ -53,12 +78,12 @@ class DriveService(private val context: Context) {
                 val fileList: FileList = drive.files().list()
                     .setSpaces("appDataFolder")
                     .setFields("nextPageToken, files(id, name)")
-                    .setQ("name='$VEHICLE_DATA_FILENAME'")
+                    .setQ("name='$vehicleDataFilename'")
                     .execute()
 
                 val existingFile = fileList.files.firstOrNull()
                 val fileMetadata = File().apply {
-                    name = VEHICLE_DATA_FILENAME
+                    name = vehicleDataFilename
                     if (existingFile == null) { // Only set parents if creating a new file
                         parents = listOf("appDataFolder")
                     }
@@ -86,12 +111,16 @@ class DriveService(private val context: Context) {
 
     suspend fun loadVehiclesFromDrive(accountEmail: String): List<Vehicle>? =
         withContext(Dispatchers.IO) {
+            if (accountEmail.isBlank()) {
+                Log.w("DriveService", "Cannot load vehicles from Drive, account email is blank.")
+                return@withContext null
+            }
             try {
                 val drive = getDriveService(accountEmail)
                 val fileList: FileList = drive.files().list()
                     .setSpaces("appDataFolder")
                     .setFields("nextPageToken, files(id, name)")
-                    .setQ("name='$VEHICLE_DATA_FILENAME'")
+                    .setQ("name='$vehicleDataFilename'")
                     .execute()
 
                 val file = fileList.files.firstOrNull()
@@ -108,7 +137,7 @@ class DriveService(private val context: Context) {
                 ).use { it.readText() }
                 val gson = Gson()
                 val type = object : TypeToken<List<Vehicle>>() {}.type
-                gson.fromJson<List<Vehicle>>(jsonVehicles, type)
+                gson.fromJson(jsonVehicles, type)
             } catch (e: Exception) {
                 Log.e("DriveService", "Error loading vehicles from Drive", e)
                 null // Indicate error
@@ -127,12 +156,12 @@ class DriveService(private val context: Context) {
                 val fileList: FileList = drive.files().list()
                     .setSpaces("appDataFolder")
                     .setFields("nextPageToken, files(id, name)")
-                    .setQ("name='$TRIP_DATA_FILENAME'")
+                    .setQ("name='$tripDataFilename'")
                     .execute()
 
                 val existingFile = fileList.files.firstOrNull()
                 val fileMetadata = File().apply {
-                    name = TRIP_DATA_FILENAME
+                    name = tripDataFilename
                     if (existingFile == null) { // Only set parents if creating a new file
                         parents = listOf("appDataFolder")
                     }
@@ -160,12 +189,16 @@ class DriveService(private val context: Context) {
 
     suspend fun loadTripsFromDrive(accountEmail: String): List<Trip>? =
         withContext(Dispatchers.IO) {
+            if (accountEmail.isBlank()) {
+                Log.w("DriveService", "Cannot load trips from Drive, account email is blank.")
+                return@withContext null
+            }
             try {
                 val drive = getDriveService(accountEmail)
                 val fileList: FileList = drive.files().list()
                     .setSpaces("appDataFolder")
                     .setFields("nextPageToken, files(id, name)")
-                    .setQ("name='$TRIP_DATA_FILENAME'")
+                    .setQ("name='$tripDataFilename'")
                     .execute()
 
                 val file = fileList.files.firstOrNull()
@@ -182,11 +215,28 @@ class DriveService(private val context: Context) {
                 ).use { it.readText() }
                 val gson = Gson()
                 val type = object : TypeToken<List<Trip>>() {}.type
-                gson.fromJson<List<Trip>>(jsonTrips, type)
+                gson.fromJson(jsonTrips, type)
             } catch (e: Exception) {
                 Log.e("DriveService", "Error loading trips from Drive", e)
                 null // Indicate error
             }
+        }
+
+    suspend fun retrieveAllDataFromDrive(accountEmail: String): DriveBackupData =       
+        withContext(Dispatchers.IO) {
+             if (accountEmail.isBlank()) {
+                Log.w("DriveService", "Cannot retrieve data from Drive, account email is blank.")
+                return@withContext DriveBackupData(null, null, null)
+            }
+            val vehiclesDeferred = async { loadVehiclesFromDrive(accountEmail) }
+            val tripsDeferred = async { loadTripsFromDrive(accountEmail) }
+            val legacyCarsDeferred = async { loadCarsFromDrive(accountEmail) }
+
+            DriveBackupData(
+                vehicles = vehiclesDeferred.await(),
+                trips = tripsDeferred.await(),
+                legacyCars = legacyCarsDeferred.await()
+            )
         }
 
     // Legacy methods for backward compatibility
@@ -201,12 +251,12 @@ class DriveService(private val context: Context) {
                 val fileList: FileList = drive.files().list()
                     .setSpaces("appDataFolder")
                     .setFields("nextPageToken, files(id, name)")
-                    .setQ("name='$CAR_DATA_FILENAME'")
+                    .setQ("name='$carDataFilename'")
                     .execute()
 
                 val existingFile = fileList.files.firstOrNull()
                 val fileMetadata = File().apply {
-                    name = CAR_DATA_FILENAME
+                    name = carDataFilename
                     if (existingFile == null) { // Only set parents if creating a new file
                         parents = listOf("appDataFolder")
                     }
@@ -234,12 +284,16 @@ class DriveService(private val context: Context) {
 
     suspend fun loadCarsFromDrive(accountEmail: String): List<String>? =
         withContext(Dispatchers.IO) {
+            if (accountEmail.isBlank()) {
+                Log.w("DriveService", "Cannot load cars from Drive, account email is blank.")
+                return@withContext null
+            }
             try {
                 val drive = getDriveService(accountEmail)
                 val fileList: FileList = drive.files().list()
                     .setSpaces("appDataFolder")
                     .setFields("nextPageToken, files(id, name)")
-                    .setQ("name='$CAR_DATA_FILENAME'")
+                    .setQ("name='$carDataFilename'")
                     .execute()
 
                 val file = fileList.files.firstOrNull()
@@ -256,7 +310,7 @@ class DriveService(private val context: Context) {
                 ).use { it.readText() }
                 val gson = Gson()
                 val type = object : TypeToken<List<String>>() {}.type
-                gson.fromJson<List<String>>(jsonCars, type)
+                gson.fromJson(jsonCars, type)
             } catch (e: Exception) {
                 Log.e("DriveService", "Error loading cars from Drive", e)
                 null // Indicate error

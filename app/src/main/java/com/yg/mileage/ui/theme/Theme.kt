@@ -1,19 +1,34 @@
+/*
+ * MyMileage – Your Smart Vehicle Mileage Tracker
+ * Copyright (C) 2025  Yojit Ghadi
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.yg.mileage.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MotionScheme
-import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.expressiveLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -32,20 +47,11 @@ fun MileageCalculatorTheme(
         else -> expressiveLightColorScheme()
     }
 
-    val shapes = Shapes(
-        extraSmall = RoundedCornerShape(4.dp),
-        small = RoundedCornerShape(8.dp),
-        medium = RoundedCornerShape(12.dp),
-        large = RoundedCornerShape(20.dp), // Expressive uses larger radii
-        extraLarge = RoundedCornerShape(32.dp)
-    )
-
     MaterialExpressiveTheme(
         colorScheme = colorScheme,
         typography = Typography,
-        shapes = shapes,
-        motionScheme = MotionScheme.expressive()
-    ) {
-        content()
-    }
+        motionScheme = MotionScheme.expressive(),
+        content = content,
+    )
 }
+

@@ -1,12 +1,30 @@
+/*
+ * MyMileage – Your Smart Vehicle Mileage Tracker
+ * Copyright (C) 2025  Yojit Ghadi
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.yg.mileage.data
 
 import android.content.Context
 import android.util.Log
-import com.yg.mileage.Trip
-import com.yg.mileage.Vehicle
 import com.yg.mileage.Currency
 import com.yg.mileage.FuelPrice
 import com.yg.mileage.FuelType
+import com.yg.mileage.Trip
+import com.yg.mileage.Vehicle
 import com.yg.mileage.auth.DriveService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -126,6 +144,26 @@ class Repository(
         return try {
             val allTrips = getAllTrips(userId).first()
             driveService.saveTripsToDrive(accountEmail, allTrips)
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    suspend fun restoreFromDrive(userId: String, accountEmail: String): Boolean {
+        return try {
+            val backupData = driveService.retrieveAllDataFromDrive(accountEmail)
+
+            // Restore vehicles
+            backupData.vehicles?.forEach { vehicle ->
+                addVehicle(vehicle, userId)
+            }
+
+            // Restore trips
+            backupData.trips?.forEach { trip ->
+                addTrip(trip, userId)
+            }
+
             true
         } catch (e: Exception) {
             false
