@@ -1,5 +1,5 @@
 <div align="center">
-<img width="1024" height="500" alt="MyMileage (2)" src="https://github.com/user-attachments/assets/5b73998e-f613-4b1f-9a6c-801cded48c58" />
+<img width="1024" height="500" alt="MyMileage" src="https://github.com/user-attachments/assets/5b73998e-f613-4b1f-9a6c-801cded48c58" />
 
 ## Introducing MyMileage,
 
@@ -9,11 +9,12 @@ MyMileage is a modern Android app that makes tracking your vehicle’s mileage �
 ![GitHub Release](https://img.shields.io/github/v/release/yg-sudo/MyMileage?include_prereleases&logo=github&logoSize=auto&link=https%3A%2F%2Fwww.github.com%2Fyg-sudo%2FMyMileage%2Freleases)
 ![Static Badge](https://img.shields.io/badge/API-26-blue?logo=android&logoColor=%2359AA68)
 ![GitHub License](https://img.shields.io/github/license/yg-sudo/MyMileage?logo=gnu&link=https%3A%2F%2Fwww.gnu.org%2Flicenses%2Fgpl-3.0.en.html)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/yg-sudo/MyMileage/codeql.yml?branch=master&logo=gradle)
 
 <img width="239" height="71" alt="GetItOnGooglePlay_Badge_Web_color_English" src="https://github.com/user-attachments/assets/4dddbe98-ba72-4285-bb9d-87641528dfbc" />
 </div>
 
-## ✨Key Features
+### Key Features
 - 🚘 Vehicle Management: Add, edit, and delete vehicle profiles with details like make, model, year, fuel type, and registration number.
 
 - 🛣️ Trip Logging: Record trips with start/end mileage and fuel filled, then automatically calculate trip distance and fuel efficiency.
@@ -28,7 +29,7 @@ MyMileage is a modern Android app that makes tracking your vehicle’s mileage �
 
 Whether you want to track your fuel efficiency ⛽, maintain organized trip records 📖, or manage multiple vehicles 🚗, MyMileage provides the tools you need in a smooth, visually appealing, and reliable app.
 
-## 👏Contribution
+## Contributing
 You can support MyMileage by downloading or suggesting improvements at unmesh.ghadi@gmail.com or through a issue in Github.
 
 ## Fonts
@@ -36,5 +37,9 @@ You can support MyMileage by downloading or suggesting improvements at unmesh.gh
   
 <img src="https://github.com/user-attachments/assets/e7a2bcb5-aa64-4bd6-9e48-170ccbc91bec" width="400">
 
-## 🐾Footnotes
+- [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+Flex)
+
+<img width="400" src="https://github.com/user-attachments/assets/e1a3093d-5065-4940-b202-14d133255a1c" />
+
+### Footnotes
 _*Phone sign-in is currently work in progress._
