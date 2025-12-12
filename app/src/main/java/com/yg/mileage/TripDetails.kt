@@ -1,7 +1,26 @@
+/*
+ * MyMileage – Your Smart Vehicle Mileage Tracker
+ * Copyright (C) 2025  Yojit Ghadi
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 @file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
 
 package com.yg.mileage
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -18,9 +37,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Calculate
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.rounded.Calculate
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -30,6 +49,7 @@ import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -50,12 +70,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.yg.mileage.data.Repository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -69,14 +91,16 @@ enum class AppMessageType { ERROR, WARNING, SUCCESS, INFO }
 @Composable
 fun MileageCalculatorScreen(
     modifier: Modifier = Modifier,
-    carViewModel: CarViewModel,
-    googleAccount: GoogleSignInAccount?
+    carViewModel: CarViewModel
 ) {
     var startMileageText by remember { mutableStateOf("") }
     var endMileageText by remember { mutableStateOf("") }
     var fuelFilledText by remember { mutableStateOf("") }
     var selectedVehicle by remember { mutableStateOf<Vehicle?>(null) }
     var vehicleDropdownExpanded by remember { mutableStateOf(false) }
+    var selectedCurrency by remember { mutableStateOf<Currency?>(null) }
+    var currencyDropdownExpanded by remember { mutableStateOf(false) }
+    var manualFuelPriceText by remember { mutableStateOf("") }
     var tripDistance by remember { mutableStateOf<Double?>(null) }
     var customCalculationResult by remember { mutableStateOf<Double?>(null) }
     var fuelCost by remember { mutableStateOf<Double?>(null) }
@@ -87,6 +111,7 @@ fun MileageCalculatorScreen(
 
     val editingTrip by carViewModel.editingTrip.collectAsState()
     val defaultCurrency by carViewModel.defaultCurrency.collectAsState()
+    val currencies by carViewModel.currencies.collectAsState()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -118,6 +143,9 @@ fun MileageCalculatorScreen(
             tripDistance = trip.tripDistance
             customCalculationResult = trip.fuelEfficiency
             fuelCost = trip.fuelCost
+            // Set currency from trip or default
+            selectedCurrency = currencies.find { it.id == trip.currencyId } ?: defaultCurrency
+            manualFuelPriceText = trip.fuelPricePerUnit?.toString() ?: ""
         } ?: run {
             startMileageText = ""
             endMileageText = ""
@@ -125,6 +153,8 @@ fun MileageCalculatorScreen(
             tripDistance = null
             customCalculationResult = null
             fuelCost = null
+            selectedCurrency = defaultCurrency
+            manualFuelPriceText = ""
         }
     }
 
@@ -140,7 +170,7 @@ fun MileageCalculatorScreen(
         item {
             ExposedDropdownMenuBox(
                 expanded = vehicleDropdownExpanded,
-                onExpandedChange = { vehicleDropdownExpanded = !vehicleDropdownExpanded },
+                onExpandedChange = { expanded -> vehicleDropdownExpanded = expanded },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 OutlinedTextField(
@@ -150,7 +180,7 @@ fun MileageCalculatorScreen(
                     label = { Text("Select Vehicle Profile *") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = vehicleDropdownExpanded) },
                     modifier = Modifier
-                        .menuAnchor()
+                        .menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true)
                         .fillMaxWidth()
                 )
                 ExposedDropdownMenu(
@@ -179,6 +209,48 @@ fun MileageCalculatorScreen(
                                     startMileageText = ""
                                     endMileageText = ""
                                     fuelFilledText = ""
+                                    selectedCurrency = defaultCurrency
+                                    manualFuelPriceText = ""
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        // Currency selection
+        item {
+            ExposedDropdownMenuBox(
+                expanded = currencyDropdownExpanded,
+                onExpandedChange = { expanded -> currencyDropdownExpanded = expanded },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedTextField(
+                    value = selectedCurrency?.let { "${it.symbol} ${it.name} (${it.code})" } ?: "Select Currency",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Currency") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = currencyDropdownExpanded) },
+                    modifier = Modifier
+                        .menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true)
+                        .fillMaxWidth()
+                )
+                ExposedDropdownMenu(
+                    expanded = currencyDropdownExpanded,
+                    onDismissRequest = { currencyDropdownExpanded = false }
+                ) {
+                    if (currencies.isEmpty()) {
+                        DropdownMenuItem(
+                            text = { Text("No currencies available") },
+                            onClick = { currencyDropdownExpanded = false }
+                        )
+                    } else {
+                        currencies.forEach { currency ->
+                            DropdownMenuItem(
+                                text = { Text("${currency.symbol} ${currency.name} (${currency.code})") },
+                                onClick = {
+                                    selectedCurrency = currency
+                                    currencyDropdownExpanded = false
                                 }
                             )
                         }
@@ -230,7 +302,7 @@ fun MileageCalculatorScreen(
                 OutlinedTextField(
                     value = fuelFilledText,
                     onValueChange = { itInput ->
-                        if (itInput.isEmpty() || itInput.matches(Regex("^\\d*\\.?\\d{0,2}\$"))) {
+                        if (itInput.isEmpty() || itInput.matches(Regex("^\\d*\\.?\\d{0,2}$"))) {
                             fuelFilledText = itInput
                             tripDistance = null
                             customCalculationResult = null
@@ -245,6 +317,28 @@ fun MileageCalculatorScreen(
                     placeholder = { Text("Enter fuel filled (e.g. 5.25)") }
                 )
             }
+
+            // Manual fuel price per unit
+            item {
+                OutlinedTextField(
+                    value = manualFuelPriceText,
+                    onValueChange = { input ->
+                        if (input.isEmpty() || input.matches(Regex("^\\d*\\.?\\d{0,2}$"))) {
+                            manualFuelPriceText = input
+                            fuelCost = null
+                            showMessage = false
+                        }
+                    },
+                    label = { Text("Fuel Price per ${if (selectedVehicle?.fuelType == FuelType.CNG) "KG" else "Ltr"}") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("Enter price per unit (e.g. 1.50)") }
+                )
+            }
+            item {
+                
+                }
             item {
                 Row(
                     modifier = Modifier
@@ -284,15 +378,20 @@ fun MileageCalculatorScreen(
                                 val distance = end - start
                                 val efficiency = distance / fuel
                                 
-                                // Calculate fuel cost if we have fuel price data - fixed smart cast issues
+                                // Calculate fuel cost using manual price if provided, else latest
                                 var calculatedFuelCost: Double? = null
                                 
                                 val vehicle = selectedVehicle
                                 val fuelType = vehicle?.fuelType
+                                val manualPrice = manualFuelPriceText.toDoubleOrNull()
                                 if (fuelType != null) {
-                                    val latestFuelPrice = carViewModel.getLatestFuelPrice(fuelType)
-                                    if (latestFuelPrice != null) {
-                                        calculatedFuelCost = fuel * latestFuelPrice.pricePerUnit
+                                    if (manualPrice != null && manualPrice > 0) {
+                                        calculatedFuelCost = fuel * manualPrice
+                                    } else {
+                                        val latestFuelPrice = carViewModel.getLatestFuelPrice(fuelType)
+                                        if (latestFuelPrice != null) {
+                                            calculatedFuelCost = fuel * latestFuelPrice.pricePerUnit
+                                        }
                                     }
                                 }
                                 
@@ -307,7 +406,7 @@ fun MileageCalculatorScreen(
                         enabled = true,
                         contentPadding = ButtonDefaults.ContentPadding
                     ) {
-                        Icon(Icons.Filled.Calculate, contentDescription = "Calculate Mileage")
+                        Icon(Icons.Rounded.Calculate, contentDescription = "Calculate Mileage")
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Calculate")
                     }
@@ -330,23 +429,27 @@ fun MileageCalculatorScreen(
                                 return@Button
                             }
 
-                            val isComplete = start != null && end != null && fuel != null && fuel > 0 && end >= start
+                            val isComplete = start != null && end != null && fuel != null && fuel > 0
 
                             // Auto-calc if complete and result missing
                             if (isComplete && (tripDistance == null || customCalculationResult == null)) {
-                                val distance = end!! - start!!
-                                val efficiency = distance / fuel!!
+                                val distance = end - start
+                                val efficiency = distance / fuel
                                 tripDistance = distance
                                 customCalculationResult = efficiency
                                 
-                                // Calculate fuel cost if we have fuel price data - fixed smart cast issues
-                                val vehicle = selectedVehicle
-                                val fuelType = vehicle?.fuelType
+                                // Calculate fuel cost using manual price if provided, else latest
+                                val fuelType = selectedVehicle?.fuelType
+                                val manualPrice = manualFuelPriceText.toDoubleOrNull()
                                 if (fuelType != null) {
                                     coroutineScope.launch {
-                                        val latestFuelPrice = carViewModel.getLatestFuelPrice(fuelType)
-                                        if (latestFuelPrice != null) {
-                                            fuelCost = fuel * latestFuelPrice.pricePerUnit
+                                        if (manualPrice != null && manualPrice > 0) {
+                                            fuelCost = fuel * manualPrice
+                                        } else {
+                                            val latestFuelPrice = carViewModel.getLatestFuelPrice(fuelType)
+                                            if (latestFuelPrice != null) {
+                                                fuelCost = fuel * latestFuelPrice.pricePerUnit
+                                            }
                                         }
                                     }
                                 }
@@ -357,13 +460,16 @@ fun MileageCalculatorScreen(
                                 var tripFuelPricePerUnit: Double? = null
                                 var tripCurrencyId: String? = null
                                 
-                                if (isComplete) {
-                                    val vehicle = selectedVehicle
-                                    val fuelType = vehicle?.fuelType
-                                    if (fuelType != null) {
+                                val fuelType = selectedVehicle?.fuelType
+                                val manualPrice = manualFuelPriceText.toDoubleOrNull()
+                                if (fuelType != null) {
+                                    if (manualPrice != null && manualPrice > 0) {
+                                        tripFuelPricePerUnit = manualPrice
+                                        tripCurrencyId = selectedCurrency?.id ?: defaultCurrency?.id
+                                    } else {
                                         val latestFuelPrice = carViewModel.getLatestFuelPrice(fuelType)
                                         tripFuelPricePerUnit = latestFuelPrice?.pricePerUnit
-                                        tripCurrencyId = latestFuelPrice?.currencyId
+                                        tripCurrencyId = selectedCurrency?.id ?: latestFuelPrice?.currencyId
                                     }
                                 }
 
@@ -383,9 +489,9 @@ fun MileageCalculatorScreen(
                                 )
 
                                 if (currentTripId != null || isTripInProgress) {
-                                    carViewModel.updateTrip(trip, googleAccount)
+                                    carViewModel.updateTrip(trip)
                                 } else {
-                                    carViewModel.addTrip(trip, googleAccount)
+                                    carViewModel.addTrip(trip)
                                 }
                                 isTripInProgress = true
                                 currentTripId = trip.id
@@ -398,7 +504,7 @@ fun MileageCalculatorScreen(
                         enabled = true,
                         contentPadding = ButtonDefaults.ContentPadding
                     ) {
-                        Icon(Icons.Filled.Save, contentDescription = "Save Trip")
+                        Icon(Icons.Rounded.Save, contentDescription = "Save Trip")
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Save Trip")
                     }
@@ -457,7 +563,7 @@ fun MileageCalculatorScreen(
                             customCalculationResult = null
                             fuelCost = null
                         }, modifier = Modifier.size(20.dp)) {
-                            Icon(Icons.Filled.Close, contentDescription = "Close Result")
+                            Icon(Icons.Rounded.Close, contentDescription = "Close Result")
                         }
                     }
                     HorizontalDivider(thickness = DividerDefaults.Thickness, color = Color.White.copy(alpha = 0.2f))
@@ -471,8 +577,6 @@ fun MileageCalculatorScreen(
                             horizontalArrangement = Arrangement.Center
                         ) {
                             ContainedLoadingIndicator(modifier = Modifier.size(28.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Calculating...", color = Color.White)
                         }
                     } else if (tripDistance != null && customCalculationResult != null) {
                         Column(
@@ -497,8 +601,7 @@ fun MileageCalculatorScreen(
                                 color = Color.White
                             )
                             if (fuelCost != null) {
-                                val currency = defaultCurrency
-                                val currencySymbol = currency?.symbol ?: ""
+                                val currencySymbol = selectedCurrency?.symbol ?: defaultCurrency?.symbol ?: ""
                                 Text(
                                     text = "Fuel Cost: $currencySymbol${decimalFormat.format(fuelCost)}",
                                     style = MaterialTheme.typography.titleMedium,
@@ -515,4 +618,17 @@ fun MileageCalculatorScreen(
     }
 }
 
-
+@SuppressLint("ViewModelConstructorInComposable")
+@Composable
+@Preview
+fun TripDetailsPreview(
+    modifier : Modifier = Modifier
+) {
+    val context = LocalContext.current
+    MileageCalculatorScreen(
+        modifier = modifier,
+        carViewModel = CarViewModel(
+        repository = Repository.getRepository(context)
+    )
+    )
+}

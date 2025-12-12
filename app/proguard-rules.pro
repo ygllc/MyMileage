@@ -19,3 +19,9 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Firebase Auth
+-keep class com.google.firebase.auth.** { *; }
+
+# Google Sign-In
+-keep class com.google.android.gms.auth.api.signin.** { *; }

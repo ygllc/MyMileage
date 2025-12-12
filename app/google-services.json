@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "981449638816-ut9vcf6pr131af3fpuo8fqifcg3eqhfv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yg.mileage",
+            "certificate_hash": "dd4c4b1c90043e78c57a32eed19d4289f1bfdd67"
+          }
+        },
+        {
           "client_id": "981449638816-d5osb2r4tjl5r3q00ja8jh8ke65kukdc.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -40,7 +48,8 @@
             }
           ]
         }
-      }
+      },
+      "admob_app_id": "ca-app-pub-5100615308326252~7690683839"
     }
   ],
   "configuration_version": "1"

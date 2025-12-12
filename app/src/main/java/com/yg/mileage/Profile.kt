@@ -1,24 +1,62 @@
+/*
+ * MyMileage – Your Smart Vehicle Mileage Tracker
+ * Copyright (C) 2025  Yojit Ghadi
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.yg.mileage
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-
-import androidx.compose.runtime.*
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonColors
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.toShape
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.yg.mileage.ui.theme.primaryLight
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -28,7 +66,7 @@ fun ProfileScreen(
     onAddVehicle: (Vehicle) -> Unit,
     onEditVehicle: (String, Vehicle) -> Unit,
     onDeleteVehicle: (String) -> Unit,
-    canDeleteVehicle: (String) -> Boolean = { true } // Default to true for backward compatibility
+    canDeleteVehicle: (String) -> Boolean
 ) {
         Column(
         modifier = Modifier
@@ -36,25 +74,28 @@ fun ProfileScreen(
             .padding(16.dp)
     ) {
             // Settings Section
+// Single-row card (now rendered as a grouped container with a bottom-shaped row)
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                shape = MyMileageShapeDefaults.topListItemShape() // make the outer container pill-like
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "Settings",
                         style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
-                    
-                    // Currency & Fuel Prices Setting
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Bottom-shaped row (acts as bottomListItem of a grouped container)
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        onClick = { navController.navigate("currency_settings") }
+                        shape = MyMileageShapeDefaults.bottomListItemShape(), // <-- bottom item shape
+                        onClick = { navController.navigate("currency_settings") },
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                     ) {
                         Row(
                             modifier = Modifier
@@ -76,6 +117,7 @@ fun ProfileScreen(
                     }
                 }
             }
+
 
             // Grid of vehicles
             LazyVerticalGrid(
@@ -120,9 +162,9 @@ fun ProfileScreen(
                 items(savedVehicles) { vehicle ->
                     VehicleCard(
                         vehicleName = vehicle.name,
-                        canDelete = canDeleteVehicle(vehicle.name),
+                        canDelete = canDeleteVehicle(vehicle.id),
                         onEdit = { navController.navigate("add_vehicle/${vehicle.name}") },
-                        onDelete = { onDeleteVehicle(vehicle.name) }
+                        onDelete = { onDeleteVehicle(vehicle.id) }
                     )
                 }
             }
@@ -162,9 +204,16 @@ fun VehicleCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                IconButton(
+                FilledIconButton(
                     onClick = onEdit,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(32.dp),
+                    shape = MaterialShapes.Cookie9Sided.toShape(),
+                    colors = IconButtonColors(
+                        containerColor = primaryLight,
+                        contentColor = Color.White,
+                        disabledContainerColor = Gray,
+                        disabledContentColor = Color.White
+                    )
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Edit,
@@ -174,14 +223,15 @@ fun VehicleCard(
                     )
                 }
 
-                IconButton(
+                FilledIconButton(
                     onClick = onDelete,
                     modifier = Modifier.size(32.dp),
-                    enabled = canDelete
+                    enabled = canDelete,
+                    shape = MaterialShapes.Cookie9Sided.toShape()
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Delete,
-                        contentDescription = if (canDelete) "Delete" else "Cannot delete - used in trips",
+                        contentDescription = if (canDelete) "Delete" else "Vehicle has trip data, profile cannot be deleted !!",
                         tint = if (canDelete) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface.copy(
                             alpha = 0.38f
                         ),

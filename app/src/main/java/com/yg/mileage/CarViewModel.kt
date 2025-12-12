@@ -1,9 +1,26 @@
+/*
+ * MyMileage – Your Smart Vehicle Mileage Tracker
+ * Copyright (C) 2025  Yojit Ghadi
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.yg.mileage
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.auth.FirebaseAuth
 import com.yg.mileage.auth.SignInResult
 import com.yg.mileage.auth.UserData
@@ -93,12 +110,10 @@ class CarViewModel(
         _editingTrip.value = trip
     }
 
-    suspend fun addTrip(trip: Trip, googleAccount: GoogleSignInAccount?) {
-        val googleId = googleAccount?.id
-        val firebaseUid = FirebaseAuth.getInstance().currentUser?.uid
-        val userIdToUse = googleId ?: firebaseUid
+    suspend fun addTrip(trip: Trip) {
+        val userIdToUse = currentUserId
 
-        Log.d("CarViewModel", "addTrip called. GoogleSignInAccount: ${googleAccount != null}, Google ID: $googleId, Firebase UID: $firebaseUid, Using userId: $userIdToUse")
+        Log.d("CarViewModel", "addTrip called. Using userId: $userIdToUse")
 
         if (userIdToUse == null) {
             Log.e("CarViewModel", "addTrip: userIdToUse is NULL. Cannot save trip. Trip data: $trip")
@@ -111,18 +126,16 @@ class CarViewModel(
         Log.d("CarViewModel", "Attempting to add trip for actual userId: '$userIdToUse', Trip data: $trip")
         try {
             repository.addTrip(trip, userIdToUse)
-            backupIfGoogleUser(userIdToUse, googleAccount, trip)
+            backupIfGoogleUser(userIdToUse, trip)
         } catch (e: Exception) {
             Log.e("CarViewModel", "Error adding trip via repository for userId '$userIdToUse'", e)
         }
     }
 
-    suspend fun updateTrip(trip: Trip, googleAccount: GoogleSignInAccount?) {
-        val googleId = googleAccount?.id
-        val firebaseUid = FirebaseAuth.getInstance().currentUser?.uid
-        val userIdToUse = googleId ?: firebaseUid
+    suspend fun updateTrip(trip: Trip) {
+        val userIdToUse = currentUserId
 
-        Log.d("CarViewModel", "updateTrip called. GoogleSignInAccount: ${googleAccount != null}, Google ID: $googleId, Firebase UID: $firebaseUid, Using userId: $userIdToUse")
+        Log.d("CarViewModel", "updateTrip called. Using userId: $userIdToUse")
 
         if (userIdToUse == null) {
             Log.e("CarViewModel", "updateTrip: userIdToUse is NULL. Cannot update trip. Trip data: $trip")
@@ -134,18 +147,18 @@ class CarViewModel(
         Log.d("CarViewModel", "Attempting to update trip for actual userId: '$userIdToUse', Trip data: $trip")
         try {
             repository.updateTrip(trip, userIdToUse)
-            backupIfGoogleUser(userIdToUse, googleAccount, trip)
+            backupIfGoogleUser(userIdToUse, trip)
         } catch (e: Exception) {
             Log.e("CarViewModel", "Error updating trip via repository for userId '$userIdToUse'", e)
         }
     }
 
-    private suspend fun backupIfGoogleUser(userId: String, googleAccount: GoogleSignInAccount?, trip: Trip) {
+    private suspend fun backupIfGoogleUser(userId: String, trip: Trip) {
         val user = FirebaseAuth.getInstance().currentUser
         val isGoogleUser = user?.providerData?.any { it.providerId == "google.com" } == true
         // Only back up completed trips to avoid uploading drafts
-        if (isGoogleUser && googleAccount != null && trip.status == TripStatus.COMPLETED) {
-            repository.backupTripsToDrive(userId, googleAccount)
+        if (isGoogleUser && trip.status == TripStatus.COMPLETED && user?.email != null) {
+            repository.backupTripsToDrive(userId, user.email!!)
         }
     }
 
@@ -156,23 +169,29 @@ class CarViewModel(
     suspend fun deleteTrip(tripId: String) {
         currentUserId?.let { repository.deleteTrip(tripId, it) }
     }
+    suspend fun continueTrip() {
 
+    }
     suspend fun addVehicle(vehicle: Vehicle) {
         currentUserId?.let { repository.addVehicle(vehicle, it) }
     }
     suspend fun updateVehicle(vehicle: Vehicle) {
         currentUserId?.let { repository.updateVehicle(vehicle, it) }
     }
-    suspend fun deleteVehicle(vehicleName: String) {
-        currentUserId?.let { repository.deleteVehicle(vehicleName, it) }
+    suspend fun deleteVehicle(vehicleId: String): Boolean {
+        val canDelete = canDeleteVehicle(vehicleId)
+        if (canDelete) {
+            currentUserId?.let { repository.deleteVehicle(vehicleId, it) }
+        } 
+        return canDelete
     }
-    suspend fun canDeleteVehicle(vehicleName: String): Boolean {
-        return currentUserId?.let { repository.canDeleteVehicle(vehicleName, it) } ?: false
+    suspend fun canDeleteVehicle(vehicleId: String): Boolean {
+        return currentUserId?.let { repository.canDeleteVehicle(vehicleId, it) } ?: false
     }
 
     fun onSignInResult(result: SignInResult) {
         _currentUser.value = result.data
-        val userId: String? = FirebaseAuth.getInstance().currentUser?.uid
+        val userId: String? = result.data?.userId
         if (userId != null) {
             observeUserData(userId)
             viewModelScope.launch { _signInCompleted.emit(Unit) }
@@ -180,7 +199,7 @@ class CarViewModel(
     }
     fun updateSignInState(user: UserData?) {
         _currentUser.value = user
-        val userId: String? = FirebaseAuth.getInstance().currentUser?.uid
+        val userId: String? = user?.userId
         if (userId != null) observeUserData(userId) else clearUserData()
     }
 
@@ -190,18 +209,20 @@ class CarViewModel(
     }
 
     // Manual backup if you want it via button (optional):
-    fun backupTripsToDrive(googleAccount: GoogleSignInAccount?, onResult: (Boolean, String) -> Unit) {
-        if (googleAccount == null) {
-            onResult(false, "Google Account required for Drive backup.")
-            return
-        }
+    fun backupTripsToDrive(onResult: (Boolean, String) -> Unit) {
         val userId = currentUserId
         if (userId == null) {
             onResult(false, "No authenticated user found.")
             return
         }
+        val user = FirebaseAuth.getInstance().currentUser
+        val email = user?.email
+        if (email == null) {
+            onResult(false, "Google Account email not found.")
+            return
+        }
         viewModelScope.launch {
-            val success = repository.backupTripsToDrive(userId, googleAccount)
+            val success = repository.backupTripsToDrive(userId, email)
             onResult(success, if (success) "Backup successful." else "Backup failed.")
         }
     }

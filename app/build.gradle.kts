@@ -1,3 +1,23 @@
+/*
+ * MyMileage – Your Smart Vehicle Mileage Tracker
+ * Copyright (C) 2025  Yojit Ghadi
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -14,8 +34,8 @@ android {
         applicationId = "com.yg.mileage"
         minSdk = 26
         targetSdk = 36
-        versionCode = 4
-        versionName = "2.4"
+        versionCode = 5
+        versionName = "2.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -26,7 +46,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true   // AFTER: Enable code shrinking and obfuscation
-
+            isShrinkResources = true  // AFTER: Enable code shrinking and obfuscation
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
@@ -36,8 +56,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
+            javaParameters.set(true)
+        }
     }
     buildFeatures {
         compose = true
@@ -54,9 +77,9 @@ android {
 
 
 dependencies {
-    // Coil
+    /** Coil */
     implementation(libs.coil.compose)
-    // Core Android & Kotlin
+    /** Core Android & Kotlin */
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -68,21 +91,26 @@ dependencies {
     implementation(libs.androidx.material3.window.size.class1)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    // Room
-    implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.ui.text)
+    implementation(libs.androidx.compose.foundation.layout)
+    /** Room */
+    implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
     androidTestImplementation(libs.androidx.room.testing)
-    // Navigation
+    /** Navigation */
     implementation(libs.androidx.navigation.compose)
-    // Google Services
+    /** Google Services */
     implementation(libs.play.services.auth)
     implementation(libs.google.api.services.drive)
     implementation(libs.google.api.client.android)
     implementation(libs.google.oauth.client.jetty)
     implementation(libs.gson)
     implementation(libs.androidx.adaptive) // Adaptive
+    /** Credential Manager */
+    implementation(libs.androidx.credential)
+    implementation(libs.androidx.credential.play.services.auth)
+    implementation(libs.googleid)
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -92,15 +120,27 @@ dependencies {
     // Debug
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    // Firebase
+    /** Firebase */
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.ui.auth)
     implementation(libs.firebase.analytics)
-    // Play Integrity
+    /** Play Integrity */
     implementation(libs.integrity)
-    // Fonts
+    /** Fonts */
     implementation(libs.androidx.ui.text.google.fonts)
-// or a version compatible with your Firebase BoM
+    /** CameraX */
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+    // ML Kit Text Recognition for Latin script (on-device)
+    implementation(libs.play.services.mlkit.text.recognition)
+    // Accompanist Permissions for handling runtime camera permissions
+    implementation(libs.accompanist.permissions)
+    /** Play In-app updates */
+    implementation(libs.app.update)
+    implementation(libs.app.update.ktx)
+
 
 }

@@ -1,3 +1,21 @@
+/*
+ * MyMileage – Your Smart Vehicle Mileage Tracker
+ * Copyright (C) 2025  Yojit Ghadi
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 
 package com.yg.mileage
@@ -21,6 +39,8 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -46,9 +66,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.yg.mileage.ui.theme.robotoFlexTopAppBar
 import kotlinx.coroutines.launch
+import java.text.DateFormat.getDateInstance
 import java.text.DecimalFormat
-import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.UUID
 
@@ -60,11 +81,41 @@ fun CurrencySettingsScreen(
     val currencies by carViewModel.currencies.collectAsState()
     val fuelPrices by carViewModel.fuelPrices.collectAsState()
     val defaultCurrency by carViewModel.defaultCurrency.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
+
+    CurrencySettingsScreenContent(
+        modifier = modifier,
+        currencies = currencies,
+        fuelPrices = fuelPrices,
+        defaultCurrency = defaultCurrency,
+        onAddCurrency = { currency -> coroutineScope.launch { carViewModel.addCurrency(currency) } },
+        onUpdateCurrency = { currency -> coroutineScope.launch { carViewModel.updateCurrency(currency) } },
+        onDeleteCurrency = { currency -> coroutineScope.launch { carViewModel.deleteCurrency(currency) } },
+        onSetDefaultCurrency = { currencyId -> coroutineScope.launch { carViewModel.setDefaultCurrency(currencyId) } },
+        onAddFuelPrice = { fuelPrice -> coroutineScope.launch { carViewModel.addFuelPrice(fuelPrice) } },
+        onUpdateFuelPrice = { fuelPrice -> coroutineScope.launch { carViewModel.updateFuelPrice(fuelPrice) } },
+        onDeleteFuelPrice = { fuelPrice -> coroutineScope.launch { carViewModel.deleteFuelPrice(fuelPrice) } }
+    )
+}
+
+@Composable
+fun CurrencySettingsScreenContent(
+    modifier: Modifier = Modifier,
+    currencies: List<Currency>,
+    fuelPrices: List<FuelPrice>,
+    defaultCurrency: Currency?,
+    onAddCurrency: (Currency) -> Unit,
+    onUpdateCurrency: (Currency) -> Unit,
+    onDeleteCurrency: (Currency) -> Unit,
+    onSetDefaultCurrency: (String) -> Unit,
+    onAddFuelPrice: (FuelPrice) -> Unit,
+    onUpdateFuelPrice: (FuelPrice) -> Unit,
+    onDeleteFuelPrice: (FuelPrice) -> Unit
+) {
     var showAddCurrencyDialog by remember { mutableStateOf(false) }
     var showAddFuelPriceDialog by remember { mutableStateOf(false) }
     var editingCurrency by remember { mutableStateOf<Currency?>(null) }
     var editingFuelPrice by remember { mutableStateOf<FuelPrice?>(null) }
-    val coroutineScope = rememberCoroutineScope() // Add this line
 
     LazyColumn(
         modifier = modifier
@@ -72,14 +123,6 @@ fun CurrencySettingsScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        item {
-            Text(
-                text = "Currency & Fuel Prices",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
         // Default Currency Section
         item {
             Card(
@@ -92,7 +135,7 @@ fun CurrencySettingsScreen(
                 ) {
                     Text(
                         text = "Default Currency",
-                        style = MaterialTheme.typography.titleMedium,
+                        fontFamily = robotoFlexTopAppBar,
                         fontWeight = FontWeight.SemiBold
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -103,8 +146,8 @@ fun CurrencySettingsScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "${defaultCurrency!!.symbol} ${defaultCurrency!!.name} (${defaultCurrency!!.code})",
-                                style = MaterialTheme.typography.bodyLarge
+                                text = "${defaultCurrency.symbol} ${defaultCurrency.name} (${defaultCurrency.code})",
+                                fontFamily = robotoFlexTopAppBar
                             )
                             IconButton(onClick = { editingCurrency = defaultCurrency }) {
                                 Icon(Icons.Filled.Edit, contentDescription = "Edit Currency")
@@ -174,9 +217,7 @@ fun CurrencySettingsScreen(
                     }
                     Row {
                         if (!currency.isDefault) {
-                            IconButton(onClick = {
-                                coroutineScope.launch { carViewModel.setDefaultCurrency(currency.id) }
-                            }) {
+                            IconButton(onClick = { onSetDefaultCurrency(currency.id) }) {
                                 Text(
                                     text = "Set Default",
                                     style = MaterialTheme.typography.labelMedium,
@@ -187,9 +228,7 @@ fun CurrencySettingsScreen(
                         IconButton(onClick = { editingCurrency = currency }) {
                             Icon(Icons.Filled.Edit, contentDescription = "Edit")
                         }
-                        IconButton(onClick = {
-                            coroutineScope.launch { carViewModel.deleteCurrency(currency) }
-                        }) {
+                        IconButton(onClick = { onDeleteCurrency(currency) }) {
                             Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = Color.Red)
                         }
                     }
@@ -241,7 +280,7 @@ fun CurrencySettingsScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "Updated: ${SimpleDateFormat("MMM dd, yyyy").format(fuelPrice.lastUpdated)}",
+                            text = "Updated: ${getDateInstance(1).format(fuelPrice.lastUpdated).format(fuelPrice.lastUpdated)}",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -250,9 +289,7 @@ fun CurrencySettingsScreen(
                         IconButton(onClick = { editingFuelPrice = fuelPrice }) {
                             Icon(Icons.Filled.Edit, contentDescription = "Edit")
                         }
-                        IconButton(onClick = {
-                            coroutineScope.launch { carViewModel.deleteFuelPrice(fuelPrice) }
-                        }) {
+                        IconButton(onClick = { onDeleteFuelPrice(fuelPrice) }) {
                             Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = Color.Red)
                         }
                     }
@@ -270,15 +307,13 @@ fun CurrencySettingsScreen(
                 editingCurrency = null
             },
             onSave = { currency ->
-                coroutineScope.launch {
-                    if (editingCurrency != null) {
-                        carViewModel.updateCurrency(currency)
-                    } else {
-                        carViewModel.addCurrency(currency)
-                    }
-                    showAddCurrencyDialog = false
-                    editingCurrency = null
+                if (editingCurrency != null) {
+                    onUpdateCurrency(currency)
+                } else {
+                    onAddCurrency(currency)
                 }
+                showAddCurrencyDialog = false
+                editingCurrency = null
             }
         )
     }
@@ -293,29 +328,44 @@ fun CurrencySettingsScreen(
                 editingFuelPrice = null
             },
             onSave = { fuelPrice ->
-                coroutineScope.launch {
-                    if (editingFuelPrice != null) {
-                        carViewModel.updateFuelPrice(fuelPrice)
-                    } else {
-                        carViewModel.addFuelPrice(fuelPrice)
-                    }
-                    showAddFuelPriceDialog = false
-                    editingFuelPrice = null
+                if (editingFuelPrice != null) {
+                    onUpdateFuelPrice(fuelPrice)
+                } else {
+                    onAddFuelPrice(fuelPrice)
                 }
+                showAddFuelPriceDialog = false
+                editingFuelPrice = null
             }
         )
     }
 }
 
-@Preview
+
+@Preview(showBackground = true)
 @Composable
 fun CurrencySettingsScreenPreview() {
-    // Mock CarViewModel or use a preview-specific ViewModel
-    // For simplicity, we'll assume a CarViewModel can be created without complex dependencies here
-    // If CarViewModel has complex dependencies (like Application context),
-    // you might need to create a fake/mock version for previews.
-    val mockCarViewModel: CarViewModel = viewModel() // This might need adjustment based on CarViewModel's constructor
-    CurrencySettingsScreen(carViewModel = mockCarViewModel)
+    val sampleCurrencies = listOf(
+        Currency(id = "1", code = "USD", name = "US Dollar", symbol = "$", isDefault = true),
+        Currency(id = "2", code = "EUR", name = "Euro", symbol = "€"),
+        Currency(id = "3", code = "INR", name = "Indian Rupee", symbol = "₹")
+    )
+    val sampleFuelPrices = listOf(
+        FuelPrice(id = "1", fuelType = FuelType.PETROL, pricePerUnit = 1.50, currencyId = "1", lastUpdated = Date(), isActive = true),
+        FuelPrice(id = "2", fuelType = FuelType.DIESEL, pricePerUnit = 1.30, currencyId = "1", lastUpdated = Date(), isActive = true),
+        FuelPrice(id = "3", fuelType = FuelType.CNG, pricePerUnit = 0.90, currencyId = "1", lastUpdated = Date(), isActive = true)
+    )
+    CurrencySettingsScreenContent(
+        currencies = sampleCurrencies,
+        fuelPrices = sampleFuelPrices,
+        defaultCurrency = sampleCurrencies.first { it.isDefault },
+        onAddCurrency = {},
+        onUpdateCurrency = {},
+        onDeleteCurrency = {},
+        onSetDefaultCurrency = {},
+        onAddFuelPrice = {},
+        onUpdateFuelPrice = {},
+        onDeleteFuelPrice = {}
+    )
 }
 
 
@@ -416,34 +466,52 @@ fun FuelPriceDialog(
 ) {
     var selectedFuelType by remember { mutableStateOf(fuelPrice?.fuelType ?: FuelType.PETROL) }
     var priceText by remember { mutableStateOf(fuelPrice?.pricePerUnit?.toString() ?: "") }
-    var selectedCurrencyId by remember { mutableStateOf(fuelPrice?.currencyId ?: currencies.firstOrNull()?.id ?: "") }
+    var selectedCurrencyId by remember { mutableStateOf(fuelPrice?.currencyId ?: currencies.firstOrNull { it.isDefault }?.id ?: currencies.firstOrNull()?.id ?: "") }
+    var isActive by remember { mutableStateOf(fuelPrice?.isActive ?: true) } // State for the checkbox
+    var isFuelTypeMenuExpanded by remember { mutableStateOf(false) }
+    var isCurrencyMenuExpanded by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (fuelPrice != null) "Edit Fuel Price" else "Add Fuel Price") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                // Fuel Type Dropdown
+                // Fuel Type Dropdown (Existing code)
                 ExposedDropdownMenuBox(
-                    expanded = false,
-                    onExpandedChange = { }
+                    expanded = isFuelTypeMenuExpanded,
+                    onExpandedChange = { isFuelTypeMenuExpanded = !isFuelTypeMenuExpanded }
                 ) {
                     OutlinedTextField(
                         value = selectedFuelType.displayName,
                         onValueChange = { },
                         readOnly = true,
                         label = { Text("Fuel Type") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = false) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isFuelTypeMenuExpanded) },
                         modifier = Modifier
                             .menuAnchor()
                             .fillMaxWidth()
                     )
+
+                    ExposedDropdownMenu(
+                        expanded = isFuelTypeMenuExpanded,
+                        onDismissRequest = { isFuelTypeMenuExpanded = false }
+                    ) {
+                        FuelType.entries.forEach { fuelType ->
+                            DropdownMenuItem(
+                                text = { Text(fuelType.displayName) },
+                                onClick = {
+                                    selectedFuelType = fuelType
+                                    isFuelTypeMenuExpanded = false
+                                }
+                            )
+                        }
+                    }
                 }
 
-                // Currency Dropdown
+                // Currency Dropdown (Existing code)
                 ExposedDropdownMenuBox(
-                    expanded = false,
-                    onExpandedChange = { }
+                    expanded = isCurrencyMenuExpanded,
+                    onExpandedChange = { isCurrencyMenuExpanded = !isCurrencyMenuExpanded }
                 ) {
                     val selectedCurrency = currencies.find { it.id == selectedCurrencyId }
                     OutlinedTextField(
@@ -451,16 +519,30 @@ fun FuelPriceDialog(
                         onValueChange = { },
                         readOnly = true,
                         label = { Text("Currency") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = false) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isCurrencyMenuExpanded) },
                         modifier = Modifier
                             .menuAnchor()
                             .fillMaxWidth()
                     )
+                    ExposedDropdownMenu(
+                        expanded = isCurrencyMenuExpanded,
+                        onDismissRequest = { isCurrencyMenuExpanded = false }
+                    ) {
+                        currencies.forEach { currency ->
+                            DropdownMenuItem(
+                                text = { Text("${currency.symbol} ${currency.name} (${currency.code})") },
+                                onClick = {
+                                    selectedCurrencyId = currency.id
+                                    isCurrencyMenuExpanded = false
+                                }
+                            )
+                        }
+                    }
                 }
 
                 OutlinedTextField(
                     value = priceText,
-                    onValueChange = { 
+                    onValueChange = {
                         if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d{0,2}$"))) {
                             priceText = it
                         }
@@ -470,6 +552,21 @@ fun FuelPriceDialog(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
+
+                // Added "Active" Checkbox
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Checkbox(
+                        checked = isActive,
+                        onCheckedChange = { isActive = it }
+                    )
+                    Text(
+                        text = "Active Price",
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                }
             }
         },
         confirmButton = {
@@ -483,7 +580,7 @@ fun FuelPriceDialog(
                             pricePerUnit = price,
                             currencyId = selectedCurrencyId,
                             lastUpdated = Date(),
-                            isActive = true
+                            isActive = isActive // Pass the checkbox state to the model
                         ))
                     }
                 }
@@ -503,8 +600,8 @@ fun FuelPriceDialog(
 @Composable
 fun AddFuelPriceDialogPreview() {
     val sampleCurrencies = listOf(
-        Currency(id="1", code = "USD", name = "US Dollar", symbol = "$"),
-        Currency(id="2", code = "EUR", name = "Euro", symbol = "€")
+        Currency(id = "1", code = "USD", name = "US Dollar", symbol = "$"),
+        Currency(id = "2", code = "EUR", name = "Euro", symbol = "€")
     )
     FuelPriceDialog(
         fuelPrice = null,
@@ -518,8 +615,8 @@ fun AddFuelPriceDialogPreview() {
 @Composable
 fun EditFuelPriceDialogPreview() {
     val sampleCurrencies = listOf(
-        Currency(id="1", code = "USD", name = "US Dollar", symbol = "$", isDefault = true),
-        Currency(id="2", code = "EUR", name = "Euro", symbol = "€")
+        Currency(id = "1", code = "USD", name = "US Dollar", symbol = "$", isDefault = true),
+        Currency(id = "2", code = "EUR", name = "Euro", symbol = "€")
     )
     val sampleFuelPrice = FuelPrice(fuelType = FuelType.PETROL, pricePerUnit = 1.50, currencyId = "1", lastUpdated = Date())
     FuelPriceDialog(

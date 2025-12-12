@@ -1,13 +1,30 @@
+/*
+ * MyMileage – Your Smart Vehicle Mileage Tracker
+ * Copyright (C) 2025  Yojit Ghadi
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.yg.mileage.data
 
 import android.content.Context
 import android.util.Log
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.yg.mileage.Trip
-import com.yg.mileage.Vehicle
 import com.yg.mileage.Currency
 import com.yg.mileage.FuelPrice
 import com.yg.mileage.FuelType
+import com.yg.mileage.Trip
+import com.yg.mileage.Vehicle
 import com.yg.mileage.auth.DriveService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -34,19 +51,18 @@ class Repository(
         vehicleDao.updateVehicle(VehicleEntity.fromVehicle(vehicle, userId))
     }
 
-    suspend fun deleteVehicle(vehicleName: String, userId: String) {
-        val v = vehicleDao.getVehicleByName(vehicleName, userId)
+    suspend fun deleteVehicle(vehicleId: String, userId: String) {
+        val v = vehicleDao.getVehicleById(vehicleId, userId)
         v?.let { vehicleDao.deleteVehicle(it) }
     }
 
-    suspend fun canDeleteVehicle(vehicleName: String, userId: String): Boolean {
-        val vehicle = vehicleDao.getVehicleByName(vehicleName, userId)
-        return vehicle?.let { vehicleDao.getTripCountForVehicle(it.name, userId) == 0 } ?: false
+    suspend fun canDeleteVehicle(vehicleId: String, userId: String): Boolean {
+        return !vehicleDao.hasTrips(vehicleId, userId)
     }
 
     // --- TRIPS ---
     fun getAllTrips(userId: String): Flow<List<Trip>> =
-        tripDao.getAllTripsForUser(userId).map { it.map { e -> e.toTrip() } }
+        tripDao.getAllTripsForUser(userId).map { it.toTripList() }
 
     suspend fun addTrip(trip: Trip, userId: String) {
         val tripEntity = TripEntity.fromTrip(trip, userId)
@@ -124,11 +140,30 @@ class Repository(
     }
 
     // --- Optional: Google Drive Backup (Only for Google Users) ---
-    suspend fun backupTripsToDrive(userId: String, googleAccount: GoogleSignInAccount): Boolean {
-        // You should implement DriveService.saveTripsToDrive for this
+    suspend fun backupTripsToDrive(userId: String, accountEmail: String): Boolean {
         return try {
             val allTrips = getAllTrips(userId).first()
-            driveService.saveTripsToDrive(googleAccount, allTrips)
+            driveService.saveTripsToDrive(accountEmail, allTrips)
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    suspend fun restoreFromDrive(userId: String, accountEmail: String): Boolean {
+        return try {
+            val backupData = driveService.retrieveAllDataFromDrive(accountEmail)
+
+            // Restore vehicles
+            backupData.vehicles?.forEach { vehicle ->
+                addVehicle(vehicle, userId)
+            }
+
+            // Restore trips
+            backupData.trips?.forEach { trip ->
+                addTrip(trip, userId)
+            }
+
             true
         } catch (e: Exception) {
             false
@@ -143,4 +178,3 @@ class Repository(
         }
     }
 }
-

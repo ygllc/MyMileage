@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.yg.mileage",
+      "sha256_cert_fingerprints": [
+        "A7:02:1D:95:3F:95:15:10:B6:EF:BD:17:37:E7:47:1A:58:44:10:D8:9E:58:03:FF:0F:87:B2:AD:B1:A1:41:58"
+      ]
+    }
+  }
+]

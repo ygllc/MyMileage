@@ -1,9 +1,26 @@
+/*
+ * MyMileage – Your Smart Vehicle Mileage Tracker
+ * Copyright (C) 2025  Yojit Ghadi
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 @file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
 
 package com.yg.mileage
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,15 +40,15 @@ import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SecondaryTabRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
@@ -54,6 +71,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.yg.mileage.auth.UserData
+import com.yg.mileage.ui.theme.MyMileageShapeDefaults
 
 // Main entry point for the screen
 @Composable
@@ -100,11 +118,11 @@ fun SignedInAccountScreen(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Profile Header
+        // Vehicles Header
         if (currentUser.profilePictureUrl != null) {
             AsyncImage(
                 model = currentUser.profilePictureUrl,
-                contentDescription = "Profile Picture",
+                contentDescription = "Vehicles Picture",
                 modifier = Modifier
                     .size(96.dp)
                     .clip(MaterialShapes.Cookie12Sided.toShape()),
@@ -113,7 +131,7 @@ fun SignedInAccountScreen(
         } else {
             Icon(
                 imageVector = Icons.Default.AccountCircle,
-                contentDescription = "Default Profile Picture",
+                contentDescription = "Default Vehicles Picture",
                 modifier = Modifier
                     .size(96.dp)
                     .clip(MaterialShapes.Cookie12Sided.toShape())
@@ -136,63 +154,90 @@ fun SignedInAccountScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         // Account Info List
+        // Outer card uses the grouped-card shape so it looks like Tomato's container
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.medium,
+            shape = MyMileageShapeDefaults.cardShape, // <-- use new card shape
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
         ) {
             Column {
-                AccountInfoRow(
-                    icon = Icons.Default.Person,
-                    title = "Personal info",
-                    subtitle = "Name, email, phone, profiles",
-                    iconBackgroundColor = Color(0xFFE0F7FA),
-                    onClick = onNavigateToPersonalInfo // Used here
-                )
+                // Top item - use topListItemShape and make the whole surface clickable
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MyMileageShapeDefaults.topListItemShape(),
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    onClick = { onNavigateToPersonalInfo() }
+                ) {
+                    AccountInfoRowContent(
+                        icon = Icons.Default.Person,
+                        title = "Personal info",
+                        subtitle = "Name, email, phone, profiles",
+                        iconBackgroundColor = Color(0xFFE0F7FA)
+                    )
+                }
+
+                // Divider between rows (Tomato used a subtle separator)
                 HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    thickness = DividerDefaults.Thickness,
-                    color = DividerDefaults.color
+                    modifier = Modifier.padding(horizontal = 0.dp),
+                    thickness = 2.dp,
+                    color = MaterialTheme.colorScheme.surface
                 )
-                AccountInfoRow(
-                    icon = Icons.Default.Security,
-                    title = "Security & sign-in",
-                    subtitle = "Google password, recent security events",
-                    iconBackgroundColor = Color(0xFFE8EAF6),
-                    onClick = onNavigateToSecurity // Used here
-                )
+
+                // Bottom item - use bottomListItemShape and clickable
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MyMileageShapeDefaults.bottomListItemShape(),
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    onClick = { onNavigateToSecurity() }
+                ) {
+                    AccountInfoRowContent(
+                        icon = Icons.Default.Security,
+                        title = "Security & sign-in",
+                        subtitle = "Google password, recent security events",
+                        iconBackgroundColor = Color(0xFFE8EAF6)
+                    )
+                }
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
+
+        // Single sign-out card - use cardShape for the outer card and topListItemShape inside so it looks like a single rounded row
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.medium,
+            shape = MyMileageShapeDefaults.cardShape,
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-
         ) {
-            AccountInfoRow(
-                icon = Icons.AutoMirrored.Filled.Logout,
-                title = "Sign out",
-                subtitle = "Sign out of your Google Account",
-                iconBackgroundColor = Color(0xFFFBE9E7),
-                onClick = onSignOutClick
-            )
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MyMileageShapeDefaults.topListItemShape(),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                onClick = { onSignOutClick() }
+            ) {
+                AccountInfoRowContent(
+                    icon = Icons.AutoMirrored.Filled.Logout,
+                    title = "Sign out",
+                    subtitle = "Sign out of your MyMileage Account",
+                    iconBackgroundColor = Color(0xFFFBE9E7)
+                )
+            }
         }
     }
 }
 
+/**
+ * Internal row content used inside Surface so shapes and click handling are outside.
+ * This avoids nested clickable modifiers.
+ */
 @Composable
-fun AccountInfoRow(
+fun AccountInfoRowContent(
     icon: ImageVector,
     title: String,
     subtitle: String,
-    iconBackgroundColor: Color,
-    onClick: (() -> Unit)? = null
+    iconBackgroundColor: Color
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(enabled = onClick != null) { onClick?.invoke() }
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -217,7 +262,6 @@ fun AccountInfoRow(
         }
     }
 }
-
 
 // Screen for when the user is NOT signed in
 @Composable
@@ -244,7 +288,7 @@ fun SignedOutAccountScreen(
         )
         Spacer(modifier = Modifier.height(24.dp))
 
-        TabRow(selectedTabIndex = selectedTabIndex) {
+        SecondaryTabRow(selectedTabIndex = selectedTabIndex) {
             tabs.forEachIndexed { index, title ->
                 Tab(
                     selected = selectedTabIndex == index,
@@ -350,24 +394,24 @@ fun PhoneSignInTab(
             style = MaterialTheme.typography.bodySmall,
         )
     }
-        if (isCodeSent) {
-            Spacer(modifier = Modifier.height(24.dp))
-            OutlinedTextField(
-                value = otp,
-                onValueChange = { otp = it },
-                label = { Text("Verification Code") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = { onVerifyOtp(otp) }) {
-                Text("Verify & Sign In")
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Work In Progress",
-                style = MaterialTheme.typography.bodySmall)
+    if (isCodeSent) {
+        Spacer(modifier = Modifier.height(24.dp))
+        OutlinedTextField(
+            value = otp,
+            onValueChange = { otp = it },
+            label = { Text("Verification Code") },
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = { onVerifyOtp(otp) }) {
+            Text("Verify & Sign In")
         }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Work In Progress",
+            style = MaterialTheme.typography.bodySmall)
+    }
 }
 
 
