@@ -36,7 +36,7 @@ uiTextGoogleFonts = "1.10.0"
 googleid = "1.1.1"
 foundationLayout = "1.10.0"
 material3Version = "1.4.0"
-cameraX = "1.6.0-alpha01"
+cameraX = "1.6.0-alpha02"
 
 
 [libraries]
