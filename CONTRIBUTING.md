@@ -1,3 +1,5 @@
+# Contributing
+
 Thanks for considering contributing to MyMileage! Please follow these steps:
 
 1. Fork the repository.
