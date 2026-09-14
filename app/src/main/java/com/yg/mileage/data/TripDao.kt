@@ -25,7 +25,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.yg.mileage.Trip
+import com.yg.mileage.ui.tripsScreen.viewModels.Trip
 import kotlinx.coroutines.flow.Flow
 
 data class TripWithVehicle(

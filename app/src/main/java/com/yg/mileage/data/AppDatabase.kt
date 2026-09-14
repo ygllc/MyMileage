@@ -24,13 +24,13 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
-import com.yg.mileage.FuelType
-import com.yg.mileage.TripStatus
+import com.yg.mileage.ui.tripsScreen.viewModels.TripStatus
+import com.yg.mileage.ui.vehiclesScreen.viewModel.FuelType
 import java.util.Date
 
 @Database(
-    entities = [VehicleEntity::class, TripEntity::class, CurrencyEntity::class, FuelPriceEntity::class, TripGroupEntity::class],
-    version = 12,
+    entities = [VehicleEntity::class, TripEntity::class, CurrencyEntity::class, FuelPriceEntity::class, TripGroupEntity::class, ExchangeRateEntity::class],
+    version = 13,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -40,6 +40,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun currencyDao(): CurrencyDao
     abstract fun fuelPriceDao(): FuelPriceDao
     abstract fun tripGroupDao(): TripGroupDao
+    abstract fun exchangeRateDao(): ExchangeRateDao
 
     companion object {
         @Volatile
@@ -58,7 +59,8 @@ abstract class AppDatabase : RoomDatabase() {
                         MIGRATION_8_9,
                         MIGRATION_9_10,
                         MIGRATION_10_11,
-                        MIGRATION_11_12
+                        MIGRATION_11_12,
+                        MIGRATION_12_13
                     )
                     .build()
                 INSTANCE = instance

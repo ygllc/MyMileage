@@ -61,7 +61,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yg.mileage.R
-import com.yg.mileage.ui.theme.MyMileage
+import com.yg.mileage.ui.theme.Seed
 import com.yg.mileage.ui.theme.robotoFlexTopAppBar
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -79,7 +79,7 @@ fun SignInScreen(
 
     LocalContext.current
 
-    Surface(modifier = Modifier.fillMaxSize(), color = MyMileage) {
+    Surface(modifier = Modifier.fillMaxSize(), color = Seed) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -124,18 +124,18 @@ fun SignInScreen(
                     Button(
                         onClick = { onEmailSignInClick(email, password) },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = MyMileage)
+                        colors = ButtonDefaults.buttonColors(containerColor = Seed)
                     ) {
                         Text("Log in")
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text("OR", fontFamily = robotoFlexTopAppBar, fontWeight = FontWeight.Bold, color = MyMileage)
+                    Text("OR", fontFamily = robotoFlexTopAppBar, fontWeight = FontWeight.Bold, color = Seed)
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Row {
                         OutlinedIconButton(
                             onClick = onGoogleSignInClick,
-                            colors = IconButtonDefaults.iconButtonColors(containerColor = MyMileage),
+                            colors = IconButtonDefaults.iconButtonColors(containerColor = Seed),
                             shape = MaterialShapes.Square.toShape()
                         ) {
                             Image(
@@ -171,7 +171,7 @@ fun SignInScreen(
                     phoneLoginMessage?.let {
                         Text(
                             text = it,
-                            color = MyMileage,
+                            color = Seed,
                             modifier = Modifier.padding(top = 8.dp)
                         )
                     }
@@ -180,7 +180,7 @@ fun SignInScreen(
                     TextButton(
                         onClick = { onForgotPasswordClick(email) },
                         modifier = Modifier.align(Alignment.End),
-                        colors = ButtonDefaults.textButtonColors(contentColor = MyMileage)
+                        colors = ButtonDefaults.textButtonColors(contentColor = Seed)
                     ) {
                         Text(
                             "Forgot Password?",
@@ -189,7 +189,7 @@ fun SignInScreen(
                     TextButton(
                         onClick = { onSignUpClick() },
                         modifier = Modifier.align(Alignment.End),
-                        colors = ButtonDefaults.textButtonColors(contentColor = MyMileage)
+                        colors = ButtonDefaults.textButtonColors(contentColor = Seed)
                     ) {
                         Text("Don't have an account? Sign up")
                     }

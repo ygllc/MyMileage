@@ -20,8 +20,8 @@ package com.yg.mileage.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.yg.mileage.FuelPrice
-import com.yg.mileage.FuelType
+import com.yg.mileage.ui.vehiclesScreen.viewModel.FuelPrice
+import com.yg.mileage.ui.vehiclesScreen.viewModel.FuelType
 import java.util.Date
 
 @Entity(tableName = "fuel_prices")

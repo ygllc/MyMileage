@@ -28,27 +28,96 @@ import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.DirectionsCar
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.navigation3.runtime.NavKey
+import kotlinx.serialization.Serializable
 
-sealed class Screen(
-    val route: String,
-    val label: String,
-    val icon: ImageVector? = null,
+sealed interface Screen : NavKey {
+    val label: String
     val description: String
-) {
-    object TripDetails : Screen("trip_details", "Trip Details", Icons.Filled.Calculate, "Create new trips")
-    object Vehicles : Screen("profile", "Vehicles", Icons.Rounded.DirectionsCar, "View and manage vehicles")
-    object Trips : Screen("trip_log", "Trips", Icons.Rounded.LocationOn, "View and manage trips")
-    object AddVehicle : Screen("add_vehicle", "Add Vehicle", Icons.Filled.Person, "Add a new vehicle")
-    object Account : Screen("account", "Account", Icons.Filled.AccountCircle, "Manage your account")
-    object PersonalInfo : Screen("personal_info", "Personal Info", Icons.Filled.AccountCircle, "Edit your personal info")
-    object SecuritySettings : Screen("security_settings", "Security Settings", Icons.Filled.Security, "Edit your security settings")
-    object CurrencySettings : Screen("currency_settings", "Currency & Fuel Prices", Icons.Filled.AttachMoney, "Add and manage currencies")
-    object Activities : Screen("activities", "Stats", Icons.Rounded.CalendarMonth, "View stats")
-    object SignIn : Screen("sign_in", "Sign In", null, "Sign in to your account")
-    object SignUp : Screen("sign_up", "Sign Up", null, "Sign up for a new account")
+
+    @Serializable
+    data object TripDetails : Screen {
+        override val label = "Trip Details"
+        override val description = "Create new trips"
+    }
+
+    @Serializable
+    data object Vehicles : Screen {
+        override val label = "Vehicles"
+        override val description = "View and manage vehicles"
+    }
+
+    @Serializable
+    data object Trips : Screen {
+        override val label = "Trips"
+        override val description = "View and manage trips"
+    }
+
+    @Serializable
+    data class AddVehicle(val vehicleName: String? = null) : Screen {
+        override val label = "Add Vehicle"
+        override val description = "Add a new vehicle"
+    }
+
+    @Serializable
+    data object Account : Screen {
+        override val label = "Account"
+        override val description = "Manage your account"
+    }
+
+    @Serializable
+    data object PersonalInfo : Screen {
+        override val label = "Personal Info"
+        override val description = "Edit your personal info"
+    }
+
+    @Serializable
+    data object SecuritySettings : Screen {
+        override val label = "Security Settings"
+        override val description = "Edit your security settings"
+    }
+
+    @Serializable
+    data object CurrencySettings : Screen {
+        override val label = "Currency & Fuel Prices"
+        override val description = "Add and manage currencies"
+    }
+
+    @Serializable
+    data object Activities : Screen {
+        override val label = "Stats"
+        override val description = "View stats"
+    }
+
+    @Serializable
+    data object SignIn : Screen {
+        override val label = "Sign In"
+        override val description = "Sign in to your account"
+    }
+
+    @Serializable
+    data object SignUp : Screen {
+        override val label = "Sign Up"
+        override val description = "Sign up for a new account"
+    }
 }
 
-val bottomNavItems = listOf(
+val Screen.icon: ImageVector?
+    get() = when (this) {
+        Screen.TripDetails -> Icons.Filled.Calculate
+        Screen.Vehicles -> Icons.Rounded.DirectionsCar
+        Screen.Trips -> Icons.Rounded.LocationOn
+        is Screen.AddVehicle -> Icons.Filled.Person
+        Screen.Account -> Icons.Filled.AccountCircle
+        Screen.PersonalInfo -> Icons.Filled.AccountCircle
+        Screen.SecuritySettings -> Icons.Filled.Security
+        Screen.CurrencySettings -> Icons.Filled.AttachMoney
+        Screen.Activities -> Icons.Rounded.CalendarMonth
+        Screen.SignIn -> null
+        Screen.SignUp -> null
+    }
+
+val bottomNavItems = listOf<Screen>(
     Screen.Vehicles,
     Screen.Trips,
     Screen.Activities,

@@ -19,5 +19,6 @@
 <resources>
     <string name="app_name">MyMileage</string>
     <string name="default_web_client_id">981449638816-0a9mvq58gs6rangcqaibrenfl0jhdj4l.apps.googleusercontent.com</string>
-    <string name="o_r">-------------------------------OR------------------------------</string>
+    <string name="change_name">Change your account\'s name</string>
+    <string name="change_name_description">Edit the display name for your profile.</string>
 </resources>

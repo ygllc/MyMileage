@@ -20,7 +20,7 @@ package com.yg.mileage.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.yg.mileage.Currency
+import com.yg.mileage.ui.vehiclesScreen.viewModel.Currency
 
 @Entity(tableName = "currencies")
 data class CurrencyEntity(

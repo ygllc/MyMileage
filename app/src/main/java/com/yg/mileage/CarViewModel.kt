@@ -25,7 +25,15 @@ import com.yg.mileage.auth.SignInResult
 import com.yg.mileage.auth.UserData
 import com.yg.mileage.data.Repository
 import com.yg.mileage.data.TripGroupEntity
+import com.yg.mileage.ui.tripsScreen.viewModels.Trip
+import com.yg.mileage.ui.tripsScreen.viewModels.TripStatus
+import com.yg.mileage.ui.vehiclesScreen.viewModel.Currency
+import com.yg.mileage.ui.vehiclesScreen.viewModel.ExchangeRate
+import com.yg.mileage.ui.vehiclesScreen.viewModel.FuelPrice
+import com.yg.mileage.ui.vehiclesScreen.viewModel.FuelType
+import com.yg.mileage.ui.vehiclesScreen.viewModel.Vehicle
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -68,11 +76,15 @@ class CarViewModel(
     private val _defaultCurrency = MutableStateFlow<Currency?>(null)
     val defaultCurrency: StateFlow<Currency?> = _defaultCurrency.asStateFlow()
 
+    private val _exchangeRates = MutableStateFlow<List<ExchangeRate>>(emptyList())
+    val exchangeRates: StateFlow<List<ExchangeRate>> = _exchangeRates.asStateFlow()
+
     private var tripJob: Job? = null
     private var tripGroupJob: Job? = null
     private var vehicleJob: Job? = null
     private var currencyJob: Job? = null
     private var fuelPriceJob: Job? = null
+    private var exchangeRateJob: Job? = null
     private var currentUserId: String? = null
 
     fun observeUserData(userId: String) {
@@ -82,6 +94,7 @@ class CarViewModel(
         vehicleJob?.cancel()
         currencyJob?.cancel()
         fuelPriceJob?.cancel()
+        exchangeRateJob?.cancel()
 
         tripJob = viewModelScope.launch {
             repository.getAllTrips(userId).collect { trips -> _savedTrips.value = trips }
@@ -102,6 +115,21 @@ class CarViewModel(
         // Load default currency
         viewModelScope.launch {
             _defaultCurrency.value = repository.getDefaultCurrency()
+            syncExchangeRatesIfNeeded()
+        }
+    }
+
+    private fun syncExchangeRatesIfNeeded() {
+        val defaultCurr = _defaultCurrency.value ?: return
+        exchangeRateJob?.cancel()
+        exchangeRateJob = viewModelScope.launch {
+            val baseCode = defaultCurr.code
+            exchangeRateJob = viewModelScope.launch {
+                repository.getExchangeRatesForBase(baseCode).collect { rates ->
+                    _exchangeRates.value = rates
+                }
+            }
+            repository.syncExchangeRatesFromApi(baseCode)
         }
     }
 
@@ -111,6 +139,7 @@ class CarViewModel(
         vehicleJob?.cancel()
         currencyJob?.cancel()
         fuelPriceJob?.cancel()
+        exchangeRateJob?.cancel()
         currentUserId = null
         _savedTrips.value = emptyList()
         _tripGroups.value = emptyList()
@@ -118,6 +147,7 @@ class CarViewModel(
         _currencies.value = emptyList()
         _fuelPrices.value = emptyList()
         _defaultCurrency.value = null
+        _exchangeRates.value = emptyList()
         _editingTrip.value = null
     }
 
@@ -296,6 +326,12 @@ class CarViewModel(
     suspend fun setDefaultCurrency(currencyId: String) {
         repository.setDefaultCurrency(currencyId)
         _defaultCurrency.value = repository.getDefaultCurrency()
+        _defaultCurrency.value?.let { defaultCurr ->
+            viewModelScope.launch {
+                repository.updateExchangeRatesFromApi(defaultCurr.code)
+                syncExchangeRatesIfNeeded()
+            }
+        }
     }
 
     // Fuel price functions
@@ -313,6 +349,17 @@ class CarViewModel(
 
     suspend fun getLatestFuelPrice(fuelType: FuelType): FuelPrice? {
         return repository.getLatestFuelPrice(fuelType)
+    }
+
+    // Exchange rate functions
+    fun getExchangeRatesForPair(baseCode: String, targetCode: String): Flow<List<ExchangeRate>> {
+        return repository.getExchangeRatesForPair(baseCode, targetCode)
+    }
+
+    suspend fun refreshExchangeRates() {
+        _defaultCurrency.value?.let { defaultCurr ->
+            repository.updateExchangeRatesFromApi(defaultCurr.code)
+        }
     }
 
     fun changePassword(password: String, onResult: (Boolean, String?) -> Unit) {

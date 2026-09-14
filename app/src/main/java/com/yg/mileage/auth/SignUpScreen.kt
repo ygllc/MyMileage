@@ -55,7 +55,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.yg.mileage.ui.theme.MyMileage
+import com.yg.mileage.ui.theme.Seed
 import com.yg.mileage.ui.theme.robotoFlexTopAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,10 +77,10 @@ fun SignUpScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MyMileage)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Seed)
             )
         },
-        containerColor = MyMileage
+        containerColor = Seed
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -148,13 +148,13 @@ fun SignUpScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MyMileage),
+                        colors = ButtonDefaults.buttonColors(containerColor = Seed),
                     ) {
                         Text("Sign up", fontSize = 16.sp)
                     }
                     Spacer(modifier = Modifier.height(24.dp))
                     TextButton(onClick = onSignInClick, modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                        Text("Already signed up? Sign in", color = MyMileage, fontSize = 14.sp)
+                        Text("Already signed up? Sign in", color = Seed, fontSize = 14.sp)
                     }
                 }
             }

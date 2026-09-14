@@ -30,8 +30,8 @@ import com.google.api.services.drive.model.File
 import com.google.api.services.drive.model.FileList
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.yg.mileage.Trip
-import com.yg.mileage.Vehicle
+import com.yg.mileage.ui.tripsScreen.viewModels.Trip
+import com.yg.mileage.ui.vehiclesScreen.viewModel.Vehicle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext

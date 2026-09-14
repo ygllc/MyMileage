@@ -20,8 +20,8 @@ package com.yg.mileage.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.yg.mileage.Trip
-import com.yg.mileage.TripStatus
+import com.yg.mileage.ui.tripsScreen.viewModels.Trip
+import com.yg.mileage.ui.tripsScreen.viewModels.TripStatus
 import java.util.Date
 
 @Entity(tableName = "trips")

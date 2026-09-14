@@ -16,6 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+@file:Suppress("UnstableApiUsage", "UnstableApiUsage", "UnstableApiUsage", "UnstableApiUsage",
+    "UnstableApiUsage", "UnstableApiUsage", "UnstableApiUsage", "UnstableApiUsage",
+    "UnstableApiUsage", "UnstableApiUsage"
+)
+
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -23,6 +28,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.google.services)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -34,12 +40,16 @@ kotlin {
 
 android {
     namespace = "com.yg.mileage"
-    compileSdk = 36
+    compileSdk {
+        version = release(37) {
+            minorApiLevel = 1
+        }
+    }
 
     defaultConfig {
         applicationId = "com.yg.mileage"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 5
         versionName = "2.5"
 
@@ -86,12 +96,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    buildFeatures {
-        compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.15" // Compatible with Kotlin 1.9.20
-    }
+
     packaging {
         resources {
             resources.excludes.add("META-INF/*")
@@ -134,6 +139,7 @@ dependencies {
     implementation(libs.material3)
     implementation(libs.androidx.material3.window.size.class1)
     implementation(libs.material3.adaptive)
+    implementation(libs.material3.adaptive.navigation.suite)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.ui.text)
@@ -149,7 +155,9 @@ dependencies {
     implementation(libs.vico.compose)
     implementation(libs.vico.compose.m3)
     /** Navigation */
-    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.kotlinx.serialization.core)
     /** Google Services */
     implementation(libs.play.services.auth)
     implementation(libs.google.api.services.drive)
@@ -198,4 +206,6 @@ dependencies {
     /** Widgets */
     implementation(libs.androidx.glance)
     implementation(libs.androidx.glance.material3)
+    /** LeakCanary */
+    debugImplementation(libs.leakcanary.android)
 }

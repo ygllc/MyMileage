@@ -1,53 +1,55 @@
 [versions]
 accompanistPermissions = "0.37.3"
-adaptive = "1.2.0"
-agp = "9.1.0-alpha05"
+adaptive = "1.3.0"
+agp = "9.4.0-alpha03"
 appUpdate = "2.1.0"
 appUpdateKtx = "2.1.0"
-coilCompose = "2.7.0"
-credential = "1.5.0"
-firebaseBom = "34.8.0"
-firebaseUiAuth = "9.1.1"
-googleApiClientAndroid = "2.8.1"
-googleApiServicesDrive = "v3-rev20251210-2.0.0"
+coilCompose = "3.6.2"
+credential = "1.7.0-alpha03"
+firebaseBom = "34.19.0"
+firebaseUiAuth = "10.0.0-beta05"
+googleApiClientAndroid = "2.9.1"
+googleApiServicesDrive = "v3-rev20260823-2.0.0"
 googleOauthClientJetty = "1.39.0"
-googleServices = "4.4.4"
+googleServices = "4.5.0"
 graphicsShapes = "1.1.0"
-gson = "2.13.2"
-glance = "1.2.0-rc01"
+gson = "2.14.0"
+glance = "1.3.0-alpha02"
 integrity = "1.6.0"
-kotlin = "2.3.0"
-ksp = "2.3.4"
-coreKtx = "1.17.0"
+kotlin = "2.4.20"
+ksp = "2.3.11"
+coreKtx = "1.19.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
-lifecycleRuntimeKtx = "2.10.0"
-material3Adaptive = "1.2.0"
-activityCompose = "1.12.2"
-composeBom = "2026.01.00"
-material3 = "1.5.0-alpha12"
-material = "1.14.0-alpha08"
-material3WindowSizeClass = "1.5.0-alpha12"
-materialIcons = "1.8.3"
+leakcanaryAndroid = "3.0-alpha-9"
+lifecycleRuntimeKtx = "2.12.0-alpha03"
+material3Adaptive = "1.4.0-alpha02"
+activityCompose = "1.14.0-alpha02"
+composeBom = "2026.09.00"
+material3 = "1.5.0-alpha28"
+material = "1.14.0"
+material3WindowSizeClass = "1.5.0-alpha28"
+materialIcons = "1.11.2"
 mlkitTextRecognition = "19.0.1"
-navVersion = "2.9.6"
-playServicesAuth = "21.5.0"
-room = "2.8.4"
-uiText = "1.10.1"
-uiTextGoogleFonts = "1.10.1"
-googleid = "1.1.1"
-foundationLayout = "1.10.1"
-material3Version = "1.4.0"
-cameraX = "1.6.0-alpha02"
-firebaseAdmobAds = "0.22.0-beta04"
-vico = "2.4.1"
-foundation = "1.10.1"
-androidxMaterial3 = "1.4.0"
-junitPlatformLauncher = "6.0.2"
-junitPlatformEngine = "6.0.2"
-journeysJunitEngine = "0.2.1"
-junitJupiter = "6.0.2"
+nav3Core = "1.2.0-rc01"
+kotlinxSerializationCore = "1.9.0"
+playServicesAuth = "22.0.0"
+room = "2.8.5"
+uiText = "1.12.1"
+uiTextGoogleFonts = "1.12.1"
+googleid = "1.2.0"
+foundationLayout = "1.12.1"
+material3Version = "1.5.0-alpha28"
+cameraX = "1.6.2"
+firebaseAdmobAds = "1.4.0"
+vico = "3.3.1"
+foundation = "1.12.1"
+androidxMaterial3 = "1.5.0-alpha28"
+junitPlatformLauncher = "6.1.3"
+junitPlatformEngine = "6.1.3"
+journeysJunitEngine = "0.3.0"
+junitJupiter = "6.1.3"
 
 
 [libraries]
@@ -65,11 +67,13 @@ androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-
 androidx-material-icons = { module = "androidx.compose.material:material-icons", version.ref = "materialIcons" }
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 androidx-material3-window-size-class1 = { module = "androidx.compose.material3:material3-window-size-class", version.ref = "material3WindowSizeClass" }
-androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navVersion" }
+androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "nav3Core" }
+androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "nav3Core" }
+kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinxSerializationCore" }
 androidx-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
 app-update = { module = "com.google.android.play:app-update", version.ref = "appUpdate" }
 app-update-ktx = { module = "com.google.android.play:app-update-ktx", version.ref = "appUpdateKtx" }
-coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-auth = { module = "com.google.firebase:firebase-auth" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
@@ -85,7 +89,7 @@ androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "j
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
-androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom-alpha", version.ref = "composeBom" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
@@ -94,9 +98,11 @@ androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-man
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-glance = { module = "androidx.glance:glance-appwidget", version.ref = "glance"}
 androidx-glance-material3 = { module = "androidx.glance:glance-material3", version.ref = "glance"}
+leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanaryAndroid" }
 material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 material3-adaptive = { module = "androidx.compose.material3.adaptive:adaptive-android", version.ref = "material3Adaptive"}
+material3-adaptive-navigation-suite = { module = "androidx.compose.material3:material3-adaptive-navigation-suite", version.ref = "material3Version" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
@@ -120,4 +126,5 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServices"}

@@ -280,3 +280,23 @@ val MIGRATION_11_12 = object : Migration(11, 12) {
         }
     }
 }
+
+val MIGRATION_12_13 = object : Migration(12, 13) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE `exchange_rates` (
+                `id` TEXT NOT NULL PRIMARY KEY,
+                `baseCurrencyCode` TEXT NOT NULL,
+                `targetCurrencyCode` TEXT NOT NULL,
+                `rate` REAL NOT NULL,
+                `year` INTEGER NOT NULL,
+                `month` INTEGER NOT NULL,
+                `lastUpdated` INTEGER NOT NULL
+            )
+            """
+        )
+        db.execSQL("CREATE INDEX index_exchange_rates_base ON exchange_rates(baseCurrencyCode)")
+        db.execSQL("CREATE INDEX index_exchange_rates_pair ON exchange_rates(baseCurrencyCode, targetCurrencyCode)")
+    }
+}

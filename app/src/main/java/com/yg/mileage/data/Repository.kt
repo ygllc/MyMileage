@@ -20,12 +20,13 @@ package com.yg.mileage.data
 
 import android.content.Context
 import android.util.Log
-import com.yg.mileage.Currency
-import com.yg.mileage.FuelPrice
-import com.yg.mileage.FuelType
-import com.yg.mileage.Trip
-import com.yg.mileage.Vehicle
+import com.yg.mileage.ui.vehiclesScreen.viewModel.Currency
+import com.yg.mileage.ui.vehiclesScreen.viewModel.ExchangeRate
+import com.yg.mileage.ui.vehiclesScreen.viewModel.FuelPrice
 import com.yg.mileage.auth.DriveService
+import com.yg.mileage.ui.tripsScreen.viewModels.Trip
+import com.yg.mileage.ui.vehiclesScreen.viewModel.FuelType
+import com.yg.mileage.ui.vehiclesScreen.viewModel.Vehicle
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -39,6 +40,7 @@ class Repository(
     private val tripGroupDao = database.tripGroupDao()
     private val currencyDao = database.currencyDao()
     private val fuelPriceDao = database.fuelPriceDao()
+    private val exchangeRateDao = database.exchangeRateDao()
 
     // --- VEHICLE ---
     fun getAllVehicles(userId: String): Flow<List<Vehicle>> =
@@ -181,6 +183,71 @@ class Repository(
             }
             true
         } catch (e: Exception) {
+            false
+        }
+    }
+
+    // --- EXCHANGE RATES ---
+    fun getExchangeRatesForBase(baseCurrencyCode: String): Flow<List<ExchangeRate>> =
+        exchangeRateDao.getExchangeRatesForBase(baseCurrencyCode).map { it.map { e -> e.toExchangeRate() } }
+
+    fun getExchangeRatesForPair(baseCurrencyCode: String, targetCurrencyCode: String): Flow<List<ExchangeRate>> =
+        exchangeRateDao.getExchangeRatesForPair(baseCurrencyCode, targetCurrencyCode).map { it.map { e -> e.toExchangeRate() } }
+
+    suspend fun getExchangeRate(baseCurrencyCode: String, targetCurrencyCode: String, year: Int, month: Int): ExchangeRate? =
+        exchangeRateDao.getExchangeRate(baseCurrencyCode, targetCurrencyCode, year, month)?.toExchangeRate()
+
+    suspend fun saveExchangeRate(exchangeRate: ExchangeRate) {
+        exchangeRateDao.insertExchangeRate(ExchangeRateEntity.fromExchangeRate(exchangeRate))
+    }
+
+    suspend fun saveExchangeRates(exchangeRates: List<ExchangeRate>) {
+        exchangeRateDao.insertExchangeRates(exchangeRates.map { ExchangeRateEntity.fromExchangeRate(it) })
+    }
+
+    suspend fun deleteExchangeRatesForBase(baseCurrencyCode: String) {
+        exchangeRateDao.deleteExchangeRatesForBase(baseCurrencyCode)
+    }
+
+    suspend fun deleteAllExchangeRates() {
+        exchangeRateDao.deleteAllExchangeRates()
+    }
+
+    suspend fun getExchangeRateCount(baseCurrencyCode: String): Int {
+        return exchangeRateDao.getExchangeRateCount(baseCurrencyCode)
+    }
+
+    suspend fun syncExchangeRatesFromApi(baseCurrencyCode: String): Boolean {
+        return try {
+            val existingCount = exchangeRateDao.getExchangeRateCount(baseCurrencyCode)
+            if (existingCount == 0) {
+                val rates = ExchangeRateApiService.fetchExchangeRatesForBaseCurrency(baseCurrencyCode, 12)
+                if (rates.isNotEmpty()) {
+                    exchangeRateDao.insertExchangeRates(rates.map { ExchangeRateEntity.fromExchangeRate(it) })
+                    Log.d("Repository", "Synced ${rates.size} exchange rates for $baseCurrencyCode")
+                }
+                true
+            } else {
+                Log.d("Repository", "Exchange rates already exist for $baseCurrencyCode, skipping sync")
+                true
+            }
+        } catch (e: Exception) {
+            Log.e("Repository", "Error syncing exchange rates", e)
+            false
+        }
+    }
+
+    suspend fun updateExchangeRatesFromApi(baseCurrencyCode: String): Boolean {
+        return try {
+            deleteExchangeRatesForBase(baseCurrencyCode)
+            val rates = ExchangeRateApiService.fetchExchangeRatesForBaseCurrency(baseCurrencyCode, 12)
+            if (rates.isNotEmpty()) {
+                exchangeRateDao.insertExchangeRates(rates.map { ExchangeRateEntity.fromExchangeRate(it) })
+                Log.d("Repository", "Updated ${rates.size} exchange rates for $baseCurrencyCode")
+            }
+            true
+        } catch (e: Exception) {
+            Log.e("Repository", "Error updating exchange rates", e)
             false
         }
     }

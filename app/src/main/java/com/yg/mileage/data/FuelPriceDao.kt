@@ -24,7 +24,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.yg.mileage.FuelType
+import com.yg.mileage.ui.vehiclesScreen.viewModel.FuelType
 import kotlinx.coroutines.flow.Flow
 
 @Dao
