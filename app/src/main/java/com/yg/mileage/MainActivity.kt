@@ -16,7 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class,
+@file:OptIn(
+    ExperimentalMaterial3ExpressiveApi::class,
     ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalMaterial3Api::class
 )
 
@@ -185,7 +186,7 @@ class MainActivity : ComponentActivity() {
                     )
                 }
             } else {
-                MyMileageTheme( {
+                MyMileageTheme({
                     val topLevelRoutes = remember {
                         setOf<NavKey>(Screen.SignIn, Screen.Vehicles, Screen.Trips, Screen.Activities)
                     }
@@ -196,7 +197,7 @@ class MainActivity : ComponentActivity() {
                     val windowSizeClass = calculateWindowSizeClass(this@MainActivity)
                     var isNavCollapsed by rememberSaveable { mutableStateOf(false) }
                     val railState = rememberWideNavigationRailState()
-                    
+
                     // Updated adaptive navigation logic:
                     // Compact: Bottom Bar
                     // Medium & Expanded: Navigation Rail (Targeting tablets and foldables)
@@ -389,16 +390,18 @@ fun AppTopBar(
         title = { Text(currentScreenTitle, fontFamily = robotoFlexTopAppBar) },
         navigationIcon = {
             if (showNavToggle) {
-                IconButton(onClick = {
-                    scope.launch {
-                        if (railState.currentValue == WideNavigationRailValue.Collapsed) {
-                            railState.expand()
-                        } else {
-                            railState.collapse()
+                IconButton(
+                    onClick = {
+                        scope.launch {
+                            if (railState.currentValue == WideNavigationRailValue.Collapsed) {
+                                railState.expand()
+                            } else {
+                                railState.collapse()
+                            }
                         }
+                        onToggleNav()
                     }
-                    onToggleNav()
-                }) {
+                ) {
                     Icon(
                         imageVector = if (isNavCollapsed) Icons.Default.Menu else Icons.AutoMirrored.Filled.MenuOpen,
                         contentDescription = if (isNavCollapsed) "Open navigation" else "Close navigation"
@@ -476,14 +479,14 @@ fun AppNavigationRail(
             state = railState,
             header = {
                 IconButton(
-                    onClick = { 
-                        scope.launch { 
+                    onClick = {
+                        scope.launch {
                             if (railState.currentValue == WideNavigationRailValue.Collapsed) {
                                 railState.expand()
                             } else {
                                 railState.collapse()
                             }
-                        } 
+                        }
                     }
                 ) {
                     Icon(
@@ -558,7 +561,7 @@ fun AppNavigationRail(
                 text = { Text(text = "New Vehicle") },
             )
             FloatingActionButtonMenuItem(
-                onClick = { fabMenuExpanded = false; showAddCurrencyDialog = true},
+                onClick = { fabMenuExpanded = false; showAddCurrencyDialog = true },
                 icon = { Icon(Icons.Rounded.Money, contentDescription = null) },
                 text = { Text(text = "New Currency") },
             )

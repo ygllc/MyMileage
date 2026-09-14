@@ -159,11 +159,11 @@ fun TripCard(
                 trip.fuelEfficiency?.let {
                     Text(
                         text = "Efficiency: ${
-                            String.format(
-                                LocalLocale.current.platformLocale,
-                                "%.2f",
-                                it
-                            )
+                        String.format(
+                            LocalLocale.current.platformLocale,
+                            "%.2f",
+                            it
+                        )
                         } km/Ltr",
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.bodyMedium,
@@ -189,11 +189,11 @@ fun TripCard(
                     val currencySymbol = defaultCurrency?.symbol ?: trip.currencyId ?: ""
                     Text(
                         text = "Fuel Cost: $currencySymbol${
-                            String.format(
-                                LocalLocale.current.platformLocale,
-                                "%.2f",
-                                cost
-                            )
+                        String.format(
+                            LocalLocale.current.platformLocale,
+                            "%.2f",
+                            cost
+                        )
                         }",
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.bodyMedium,

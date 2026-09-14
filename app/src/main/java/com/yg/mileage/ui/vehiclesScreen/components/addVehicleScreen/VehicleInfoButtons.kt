@@ -107,7 +107,7 @@ fun VehicleInfoButtons(
             },
             modifier = Modifier.weight(1f)
         ) {
-            Text( if (vehicleToEdit != null) "Update" else "Save")
+            Text(if (vehicleToEdit != null) "Update" else "Save")
         }
     }
 }

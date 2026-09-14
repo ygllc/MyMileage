@@ -68,7 +68,8 @@ enum class AppMessageType { ERROR, WARNING, SUCCESS, INFO }
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun MileageCalculatorScreen(
-    modifier: Modifier = Modifier, carViewModel: CarViewModel
+    modifier: Modifier = Modifier,
+    carViewModel: CarViewModel
 ) {
     var startMileageText by remember { mutableStateOf("") }
     var endMileageText by remember { mutableStateOf("") }
@@ -202,7 +203,8 @@ fun MileageCalculatorScreen(
                         tripDistance = null
                         customCalculationResult = null
                         fuelCost = null
-                    })
+                    }
+                )
             }
         }
         item {
@@ -241,7 +243,8 @@ fun MileageCalculatorScreen(
                         manualFuelPriceText = ""
                         defaultFuelPrice = null
                     }
-                })
+                }
+            )
         }
         // Currency selection
         item {
@@ -253,7 +256,8 @@ fun MileageCalculatorScreen(
                 onCurrencySelected = { currency ->
                     selectedCurrency = currency
                     currencyDropdownExpanded = false
-                })
+                }
+            )
         }
         if (selectedVehicle != null) {
             item { Spacer(modifier = Modifier.height(16.dp)) }
@@ -270,101 +274,105 @@ fun MileageCalculatorScreen(
                     label = "Trip Start"
                 )
             }
-        item {
-            MileageTextField(
-                value = endMileageText,
-                onValueChange = {
-                    endMileageText = it
-                    tripDistance = null
-                    customCalculationResult = null
-                    fuelCost = null
-                    showMessage = false
-                },
-                label = "Trip End"
-            )
-        }
+            item {
+                MileageTextField(
+                    value = endMileageText,
+                    onValueChange = {
+                        endMileageText = it
+                        tripDistance = null
+                        customCalculationResult = null
+                        fuelCost = null
+                        showMessage = false
+                    },
+                    label = "Trip End"
+                )
+            }
 //        item {
 //            AddSubTripButton(modifier)
 //        }
-        item {
-            FuelTextField(
-                value = fuelFilledText, onValueChange = { itInput ->
-                    fuelFilledText = itInput
-                    tripDistance = null
-                    customCalculationResult = null
-                    fuelCost = null
-                    showMessage = false
-                }, fuelType = selectedVehicle?.fuelType
-            )
-        }
-
-        // Manual fuel price per unit
-        item {
-            FuelPriceTextField(
-                value = manualFuelPriceText, onValueChange = { input ->
-                    manualFuelPriceText = input
-                    isFuelPriceModified = true
-                    fuelCost = null
-                    showMessage = false
-                }, fuelType = selectedVehicle?.fuelType
-            )
-        }
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                CalculateButton(
-                    startMileageText = startMileageText,
-                    endMileageText = endMileageText,
-                    fuelFilledText = fuelFilledText,
-                    selectedVehicle = selectedVehicle,
-                    manualFuelPriceText = manualFuelPriceText,
-                    carViewModel = carViewModel,
-                    coroutineScope = coroutineScope,
-                    onShowMessage = ::showMessage,
-                    onCalculationResult = { distance, efficiency, calculatedFuelCost ->
-                        tripDistance = distance
-                        customCalculationResult = efficiency
-                        fuelCost = calculatedFuelCost
+            item {
+                FuelTextField(
+                    value = fuelFilledText,
+                    onValueChange = { itInput ->
+                        fuelFilledText = itInput
+                        tripDistance = null
+                        customCalculationResult = null
+                        fuelCost = null
+                        showMessage = false
                     },
-                    onCalculatingChange = { isCalculating = it },
-                    enabled = true,
-                    isCalculating = isCalculating,
-                    modifier = Modifier.weight(1f)
-                )
-
-                SaveTripButton(
-                    startMileageText = startMileageText,
-                    endMileageText = endMileageText,
-                    fuelFilledText = fuelFilledText,
-                    selectedVehicle = selectedVehicle,
-                    selectedCurrency = selectedCurrency,
-                    defaultCurrency = defaultCurrency,
-                    manualFuelPriceText = manualFuelPriceText,
-                    isFuelPriceModified = isFuelPriceModified,
-                    defaultFuelPrice = defaultFuelPrice,
-                    editingTripGroupId = editingTripGroupId,
-                    currentTripId = currentTripId,
-                    isTripInProgress = isTripInProgress,
-                    tripDistance = tripDistance,
-                    customCalculationResult = customCalculationResult,
-                    fuelCost = fuelCost,
-                    carViewModel = carViewModel,
-                    coroutineScope = coroutineScope,
-                    onShowMessage = ::showMessage,
-                    onTripDistanceChange = { tripDistance = it },
-                    onCalculationResultChange = { customCalculationResult = it },
-                    onFuelCostChange = { fuelCost = it },
-                    onTripProgressChange = { isTripInProgress = it },
-                    onCurrentTripIdChange = { currentTripId = it },
-                    enabled = true,
-                    modifier = Modifier.weight(1f)
+                    fuelType = selectedVehicle?.fuelType
                 )
             }
-        }
+
+            // Manual fuel price per unit
+            item {
+                FuelPriceTextField(
+                    value = manualFuelPriceText,
+                    onValueChange = { input ->
+                        manualFuelPriceText = input
+                        isFuelPriceModified = true
+                        fuelCost = null
+                        showMessage = false
+                    },
+                    fuelType = selectedVehicle?.fuelType
+                )
+            }
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    CalculateButton(
+                        startMileageText = startMileageText,
+                        endMileageText = endMileageText,
+                        fuelFilledText = fuelFilledText,
+                        selectedVehicle = selectedVehicle,
+                        manualFuelPriceText = manualFuelPriceText,
+                        carViewModel = carViewModel,
+                        coroutineScope = coroutineScope,
+                        onShowMessage = ::showMessage,
+                        onCalculationResult = { distance, efficiency, calculatedFuelCost ->
+                            tripDistance = distance
+                            customCalculationResult = efficiency
+                            fuelCost = calculatedFuelCost
+                        },
+                        onCalculatingChange = { isCalculating = it },
+                        enabled = true,
+                        isCalculating = isCalculating,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    SaveTripButton(
+                        startMileageText = startMileageText,
+                        endMileageText = endMileageText,
+                        fuelFilledText = fuelFilledText,
+                        selectedVehicle = selectedVehicle,
+                        selectedCurrency = selectedCurrency,
+                        defaultCurrency = defaultCurrency,
+                        manualFuelPriceText = manualFuelPriceText,
+                        isFuelPriceModified = isFuelPriceModified,
+                        defaultFuelPrice = defaultFuelPrice,
+                        editingTripGroupId = editingTripGroupId,
+                        currentTripId = currentTripId,
+                        isTripInProgress = isTripInProgress,
+                        tripDistance = tripDistance,
+                        customCalculationResult = customCalculationResult,
+                        fuelCost = fuelCost,
+                        carViewModel = carViewModel,
+                        coroutineScope = coroutineScope,
+                        onShowMessage = ::showMessage,
+                        onTripDistanceChange = { tripDistance = it },
+                        onCalculationResultChange = { customCalculationResult = it },
+                        onFuelCostChange = { fuelCost = it },
+                        onTripProgressChange = { isTripInProgress = it },
+                        onCurrentTripIdChange = { currentTripId = it },
+                        enabled = true,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
         }
     }
 }
