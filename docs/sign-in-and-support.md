@@ -4,9 +4,9 @@ description: Sign-in options, feedback, and support channels.
 
 # Sign-in and Support
 
-## Sign-in and Support
+## Sign-in
 
-MyMileage supports multiple ways to sign in 🔐.
+MyMileage supports multiple ways to sign in.
 
 ### Sign-in options
 
@@ -25,7 +25,7 @@ Phone sign-in is still in progress.
 
 If you want to suggest improvements or report an issue, use one of these channels:
 
-* Email: [unmesh.ghadi@gmail.com](mailto:unmesh.ghadi@gmail.com)
+* Email: [unmesh.ghadi@gmail.com](mailto:unmesh.ghadi@gmail.com) or yojitghadi@outlook.com
 * GitHub issues: [MyMileage Issues](https://github.com/ygllc/MyMileage/issues)
 * YouTrack: [MYMILPUB project](https://ygllc.youtrack.cloud/projects/MYMILPUB)
 

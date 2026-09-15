@@ -15,11 +15,11 @@ Use it to manage vehicles 🚘, log trips 🛣️, and monitor fuel efficiency �
 
 ## Download
 
-* (Recommended) Get MyMileage on Google Play.
+* Get MyMileage on Google Play.
 
 [![Get it on Google Play](<.gitbook/assets/4dddbe98 ba72 4285 bb9d 87641528dfbc>)](https://play.google.com/store/apps/details?id=com.yg.mileage)
 
-* (Not recommended) [Get it on GitHub](https://github.com/ygllc/MyMileage)
+* &#x20;Get MyMileage [on GitHub](https://github.com/ygllc/MyMileage)
 
 <div align="left" data-with-frame="true"><figure><picture><source srcset=".gitbook/assets/GitHub_Lockup_White_Clearspace.png" media="(prefers-color-scheme: dark)"><img src=".gitbook/assets/GitHub_Lockup_Black_Clearspace.png" alt="" width="375"></picture><figcaption></figcaption></figure></div>
 

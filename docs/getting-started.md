@@ -43,7 +43,7 @@ Add the details you have available, like make, model, year, fuel type, and regis
 {% endstep %}
 
 {% step %}
-### Log your first trip
+### Log your first trip (or trip group)
 
 Enter:
 
@@ -51,7 +51,7 @@ Enter:
 * End mileage
 * Fuel filled
 
-Save the trip as a draft or mark it complete.
+Save the trip/trip in a group as a draft or mark it complete.
 {% endstep %}
 {% endstepper %}
 
