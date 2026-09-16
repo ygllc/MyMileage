@@ -54,7 +54,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -74,9 +73,7 @@ import com.yg.mileage.ui.theme.MyMileageShapeDefaults
 import com.yg.mileage.ui.theme.adaptiveContent
 import com.yg.mileage.ui.tripsScreen.screens.FilterBottomSheetContent
 import com.yg.mileage.ui.tripsScreen.viewModels.HistoryItem
-import com.yg.mileage.ui.tripsScreen.viewModels.SortableHistoryItem
 import com.yg.mileage.ui.tripsScreen.viewModels.Trip
-import com.yg.mileage.ui.tripsScreen.viewModels.TripStatus
 import com.yg.mileage.ui.vehiclesScreen.viewModel.Currency
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat

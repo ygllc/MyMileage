@@ -47,8 +47,6 @@ import com.yg.mileage.ui.tripsScreen.components.tripsScreen.TripsScreenContent
 import com.yg.mileage.ui.tripsScreen.viewModels.Trip
 import com.yg.mileage.ui.tripsScreen.viewModels.TripStatus
 import com.yg.mileage.ui.vehiclesScreen.viewModel.Currency
-import com.yg.mileage.ui.tripsScreen.viewModels.HistoryItem
-import com.yg.mileage.ui.tripsScreen.viewModels.SortableHistoryItem
 import kotlinx.coroutines.launch
 import java.util.Date
 
@@ -63,7 +61,7 @@ fun TripsScreen(
     val defaultCurrency by carViewModel.defaultCurrency.collectAsState()
     val historyItems by carViewModel.historyItems.collectAsState()
     val tripsFilterIndex by carViewModel.tripsFilterIndex.collectAsState()
-    
+
     val coroutineScope = rememberCoroutineScope()
     val isTwoPane = windowWidthSizeClass != WindowWidthSizeClass.Compact
     var selectedTripForPane by rememberSaveable { mutableStateOf<Trip?>(null) }
