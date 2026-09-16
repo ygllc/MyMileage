@@ -40,7 +40,7 @@ fun FuelTextField(
         FuelType.CNG -> "CNG Filled (KG)"
         null -> "Fuel Filled"
     }
-    
+
     OutlinedTextField(
         value = value,
         onValueChange = { input ->

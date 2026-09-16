@@ -70,150 +70,150 @@ fun VehicleInfoTextFields(
     val fieldSpacerHeight = if (isWideLayout) 12.dp else 16.dp
     val sectionSpacerHeight = if (isWideLayout) 24.dp else 32.dp
 
-        // Vehicle Name TextField (Required)
+    // Vehicle Name TextField (Required)
+    OutlinedTextField(
+        value = vehicleName,
+        onValueChange = onVehicleNameChange,
+        label = { Text("Vehicle Name *") },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true
+    )
+
+    Spacer(modifier = Modifier.height(fieldSpacerHeight))
+
+    // Vehicle Icon Dropdown
+    var iconDropdownExpanded by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(
+        expanded = iconDropdownExpanded,
+        onExpandedChange = { iconDropdownExpanded = !iconDropdownExpanded },
+        modifier = Modifier.fillMaxWidth()
+    ) {
         OutlinedTextField(
-            value = vehicleName,
-            onValueChange = onVehicleNameChange,
-            label = { Text("Vehicle Name *") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            value = selectedIconName,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Vehicle Icon") },
+            leadingIcon = {
+                Icon(
+                    imageVector = getVehicleIcon(selectedIconName),
+                    contentDescription = null
+                )
+            },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = iconDropdownExpanded) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(
+                    type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                    enabled = true
+                )
         )
-
-        Spacer(modifier = Modifier.height(fieldSpacerHeight))
-
-        // Vehicle Icon Dropdown
-        var iconDropdownExpanded by remember { mutableStateOf(false) }
-        ExposedDropdownMenuBox(
+        ExposedDropdownMenu(
             expanded = iconDropdownExpanded,
-            onExpandedChange = { iconDropdownExpanded = !iconDropdownExpanded },
-            modifier = Modifier.fillMaxWidth()
+            onDismissRequest = { iconDropdownExpanded = false }
         ) {
-            OutlinedTextField(
-                value = selectedIconName,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Vehicle Icon") },
-                leadingIcon = {
-                    Icon(
-                        imageVector = getVehicleIcon(selectedIconName),
-                        contentDescription = null
-                    )
-                },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = iconDropdownExpanded) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(
-                        type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
-                        enabled = true
-                    )
-            )
-            ExposedDropdownMenu(
-                expanded = iconDropdownExpanded,
-                onDismissRequest = { iconDropdownExpanded = false }
-            ) {
-                VehicleIcons.forEach { (name, icon) ->
-                    DropdownMenuItem(
-                        text = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = icon,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(name)
-                            }
-                        },
-                        onClick = {
-                            onSelectedIconNameChange(name)
-                            iconDropdownExpanded = false
+            VehicleIcons.forEach { (name, icon) ->
+                DropdownMenuItem(
+                    text = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(name)
                         }
-                    )
-                }
+                    },
+                    onClick = {
+                        onSelectedIconNameChange(name)
+                        iconDropdownExpanded = false
+                    }
+                )
             }
         }
+    }
 
-        Spacer(modifier = Modifier.height(fieldSpacerHeight))
+    Spacer(modifier = Modifier.height(fieldSpacerHeight))
 
-        // Make TextField (Optional)
+    // Make TextField (Optional)
+    OutlinedTextField(
+        value = make,
+        onValueChange = onMakeChange,
+        label = { Text("Make") },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true
+    )
+
+    Spacer(modifier = Modifier.height(fieldSpacerHeight))
+
+    // Model TextField (Optional)
+    OutlinedTextField(
+        value = model,
+        onValueChange = onModelChange,
+        label = { Text("Model") },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true
+    )
+
+    Spacer(modifier = Modifier.height(fieldSpacerHeight))
+
+    // Year TextField (Optional)
+    OutlinedTextField(
+        value = year,
+        onValueChange = onYearChange,
+        label = { Text("Year") },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true
+    )
+
+    Spacer(modifier = Modifier.height(fieldSpacerHeight))
+
+    // Fuel Type Dropdown (Required)
+    var fuelTypeExpanded by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(
+        expanded = fuelTypeExpanded,
+        onExpandedChange = { fuelTypeExpanded = !fuelTypeExpanded },
+        modifier = Modifier.fillMaxWidth()
+    ) {
         OutlinedTextField(
-            value = make,
-            onValueChange = onMakeChange,
-            label = { Text("Make") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            value = fuelType?.displayName ?: "",
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Fuel Type *") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = fuelTypeExpanded) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(
+                    type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                    enabled = true
+                ),
         )
-
-        Spacer(modifier = Modifier.height(fieldSpacerHeight))
-
-        // Model TextField (Optional)
-        OutlinedTextField(
-            value = model,
-            onValueChange = onModelChange,
-            label = { Text("Model") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
-
-        Spacer(modifier = Modifier.height(fieldSpacerHeight))
-
-        // Year TextField (Optional)
-        OutlinedTextField(
-            value = year,
-            onValueChange = onYearChange,
-            label = { Text("Year") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
-
-        Spacer(modifier = Modifier.height(fieldSpacerHeight))
-
-        // Fuel Type Dropdown (Required)
-        var fuelTypeExpanded by remember { mutableStateOf(false) }
-        ExposedDropdownMenuBox(
+        ExposedDropdownMenu(
             expanded = fuelTypeExpanded,
-            onExpandedChange = { fuelTypeExpanded = !fuelTypeExpanded },
-            modifier = Modifier.fillMaxWidth()
+            onDismissRequest = { fuelTypeExpanded = false }
         ) {
-            OutlinedTextField(
-                value = fuelType?.displayName ?: "",
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Fuel Type *") },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = fuelTypeExpanded) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(
-                        type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
-                        enabled = true
-                    ),
-            )
-            ExposedDropdownMenu(
-                expanded = fuelTypeExpanded,
-                onDismissRequest = { fuelTypeExpanded = false }
-            ) {
-                FuelType.entries.forEach { fuel ->
-                    DropdownMenuItem(
-                        text = { Text(fuel.displayName) },
-                        onClick = {
-                            onFuelTypeChange(fuel)
-                            fuelTypeExpanded = false
-                        }
-                    )
-                }
+            FuelType.entries.forEach { fuel ->
+                DropdownMenuItem(
+                    text = { Text(fuel.displayName) },
+                    onClick = {
+                        onFuelTypeChange(fuel)
+                        fuelTypeExpanded = false
+                    }
+                )
             }
         }
+    }
 
-        Spacer(modifier = Modifier.height(fieldSpacerHeight))
+    Spacer(modifier = Modifier.height(fieldSpacerHeight))
 
-        // Registration Number TextField (Optional)
-        OutlinedTextField(
-            value = registrationNumber,
-            onValueChange = onRegistrationNumberChange,
-            label = { Text("Registration Number") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
+    // Registration Number TextField (Optional)
+    OutlinedTextField(
+        value = registrationNumber,
+        onValueChange = onRegistrationNumberChange,
+        label = { Text("Registration Number") },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true
+    )
 
-        Spacer(modifier = Modifier.height(sectionSpacerHeight))
+    Spacer(modifier = Modifier.height(sectionSpacerHeight))
 }

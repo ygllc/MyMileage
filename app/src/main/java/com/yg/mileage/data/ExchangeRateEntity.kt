@@ -59,7 +59,7 @@ data class ExchangeRateEntity(
         }
 
         fun generateId(baseCode: String, targetCode: String, year: Int, month: Int): String {
-            return "${baseCode}_${targetCode}_${year}_${month}"
+            return "${baseCode}_${targetCode}_${year}_$month"
         }
     }
 }

@@ -20,11 +20,11 @@ package com.yg.mileage.data
 
 import android.content.Context
 import android.util.Log
+import com.yg.mileage.auth.DriveService
+import com.yg.mileage.ui.tripsScreen.viewModels.Trip
 import com.yg.mileage.ui.vehiclesScreen.viewModel.Currency
 import com.yg.mileage.ui.vehiclesScreen.viewModel.ExchangeRate
 import com.yg.mileage.ui.vehiclesScreen.viewModel.FuelPrice
-import com.yg.mileage.auth.DriveService
-import com.yg.mileage.ui.tripsScreen.viewModels.Trip
 import com.yg.mileage.ui.vehiclesScreen.viewModel.FuelType
 import com.yg.mileage.ui.vehiclesScreen.viewModel.Vehicle
 import kotlinx.coroutines.flow.Flow

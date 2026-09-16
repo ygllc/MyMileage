@@ -139,7 +139,7 @@ fun TripsScreen(
                 carViewModel.setEditingTrip(null)
                 carViewModel.setEditingTripGroupId(null)
                 selectedTripForPane = null
-                showNewTripPane = true   // Show new trip form in supporting pane
+                showNewTripPane = true // Show new trip form in supporting pane
             } else {
                 carViewModel.setEditingTrip(null)
                 carViewModel.setEditingTripGroupId(null)
@@ -154,7 +154,7 @@ fun TripsScreen(
                 carViewModel.setEditingTrip(null)
                 carViewModel.setEditingTripGroupId(groupId)
                 selectedTripForPane = null
-                showNewTripPane = true   // Show new trip form for this group in pane
+                showNewTripPane = true // Show new trip form for this group in pane
             } else {
                 carViewModel.setEditingTrip(null)
                 carViewModel.setEditingTripGroupId(groupId)
