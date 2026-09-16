@@ -47,6 +47,8 @@ import com.yg.mileage.ui.tripsScreen.components.tripsScreen.TripsScreenContent
 import com.yg.mileage.ui.tripsScreen.viewModels.Trip
 import com.yg.mileage.ui.tripsScreen.viewModels.TripStatus
 import com.yg.mileage.ui.vehiclesScreen.viewModel.Currency
+import com.yg.mileage.ui.tripsScreen.viewModels.HistoryItem
+import com.yg.mileage.ui.tripsScreen.viewModels.SortableHistoryItem
 import kotlinx.coroutines.launch
 import java.util.Date
 
@@ -58,9 +60,10 @@ fun TripsScreen(
     carViewModel: CarViewModel,
     onNavigateToTripDetails: () -> Unit
 ) {
-    val trips by carViewModel.savedTrips.collectAsState()
-    val tripGroups by carViewModel.tripGroups.collectAsState()
     val defaultCurrency by carViewModel.defaultCurrency.collectAsState()
+    val historyItems by carViewModel.historyItems.collectAsState()
+    val tripsFilterIndex by carViewModel.tripsFilterIndex.collectAsState()
+    
     val coroutineScope = rememberCoroutineScope()
     val isTwoPane = windowWidthSizeClass != WindowWidthSizeClass.Compact
     var selectedTripForPane by rememberSaveable { mutableStateOf<Trip?>(null) }
@@ -103,8 +106,9 @@ fun TripsScreen(
         modifier = modifier,
         windowWidthSizeClass = windowWidthSizeClass,
         isTwoPane = isTwoPane,
-        trips = trips,
-        tripGroups = tripGroups,
+        historyItems = historyItems,
+        tripsFilterIndex = tripsFilterIndex,
+        onFilterSelected = { carViewModel.setTripsFilterIndex(it) },
         defaultCurrency = defaultCurrency,
         selectedTripForPane = selectedTripForPane,
         showNewTripPane = showNewTripPane,
@@ -175,17 +179,6 @@ fun FilterBottomSheetContent(onApply: () -> Unit) {
     Spacer(modifier = Modifier.padding(25.dp))
 }
 
-sealed class HistoryItem {
-    data class SingleTrip(val trip: Trip) : HistoryItem()
-    data class GroupHeader(val group: TripGroupEntity) : HistoryItem()
-    data class GroupTrip(val trip: Trip, val isLast: Boolean) : HistoryItem()
-}
-
-sealed class SortableHistoryItem(val time: Long) {
-    class SingleTripItem(val trip: Trip, time: Long) : SortableHistoryItem(time)
-    class GroupBlock(val group: TripGroupEntity, val trips: List<Trip>, time: Long) : SortableHistoryItem(time)
-}
-
 @Preview(showBackground = true)
 @Composable
 fun HistoryPreview() {
@@ -225,9 +218,10 @@ fun HistoryPreview() {
     )
     MaterialTheme {
         TripsScreenContent(
-            trips = sampleTrips,
-            tripGroups = emptyList(),
-            defaultCurrency = Currency("inr", "INR", "Indian Rupee", "₹", true),
+            historyItems = emptyList(),
+            tripsFilterIndex = 0,
+            onFilterSelected = {},
+            defaultCurrency = Currency("inr", "INR", "Indian Rupee", "?", true),
             onNavigateToTripDetails = {},
             onEditTrip = {},
             onDeleteTrip = {},

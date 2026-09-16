@@ -46,6 +46,9 @@ class Repository(
     fun getAllVehicles(userId: String): Flow<List<Vehicle>> =
         vehicleDao.getAllVehiclesForUser(userId).map { it.map { e -> e.toVehicle() } }
 
+    fun getVehicleIdsWithTrips(userId: String): Flow<Set<String>> =
+        vehicleDao.getVehicleIdsWithTrips(userId).map { it.toSet() }
+
     suspend fun addVehicle(vehicle: Vehicle, userId: String) {
         vehicleDao.insertVehicle(VehicleEntity.fromVehicle(vehicle, userId))
     }

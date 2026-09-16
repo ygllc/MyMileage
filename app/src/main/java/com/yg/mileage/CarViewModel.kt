@@ -32,7 +32,12 @@ import com.yg.mileage.ui.vehiclesScreen.viewModel.ExchangeRate
 import com.yg.mileage.ui.vehiclesScreen.viewModel.FuelPrice
 import com.yg.mileage.ui.vehiclesScreen.viewModel.FuelType
 import com.yg.mileage.ui.vehiclesScreen.viewModel.Vehicle
+import com.yg.mileage.ui.tripsScreen.viewModels.HistoryItem
+import com.yg.mileage.ui.tripsScreen.viewModels.SortableHistoryItem
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,11 +54,71 @@ class CarViewModel(
     private val _savedVehicles = MutableStateFlow<List<Vehicle>>(emptyList())
     val savedVehicles: StateFlow<List<Vehicle>> = _savedVehicles.asStateFlow()
 
+    private val _vehicleIdsWithTrips = MutableStateFlow<Set<String>>(emptySet())
+    val vehicleIdsWithTrips: StateFlow<Set<String>> = _vehicleIdsWithTrips.asStateFlow()
+
     private val _savedTrips = MutableStateFlow<List<Trip>>(emptyList())
     val savedTrips: StateFlow<List<Trip>> = _savedTrips.asStateFlow()
 
     private val _tripGroups = MutableStateFlow<List<TripGroupEntity>>(emptyList())
     val tripGroups: StateFlow<List<TripGroupEntity>> = _tripGroups.asStateFlow()
+
+    private val _tripsFilterIndex = MutableStateFlow(0)
+    val tripsFilterIndex: StateFlow<Int> = _tripsFilterIndex.asStateFlow()
+
+    fun setTripsFilterIndex(index: Int) {
+        _tripsFilterIndex.value = index
+    }
+
+    val historyItems: StateFlow<List<HistoryItem>> = combine(
+        _savedTrips,
+        _tripGroups,
+        _tripsFilterIndex
+    ) { trips, groups, filterIdx ->
+        val filteredTrips = when (filterIdx) {
+            1 -> trips.filter { it.status == TripStatus.COMPLETED }
+            2 -> trips.filter { it.status == TripStatus.DRAFT }
+            else -> trips
+        }
+
+        val items = mutableListOf<HistoryItem>()
+        val tripsByGroup = filteredTrips.filter { it.tripGroup != null }.groupBy { it.tripGroup!! }
+        val orphanTrips = filteredTrips.filter { it.tripGroup == null }
+
+        val tempItems = mutableListOf<SortableHistoryItem>()
+
+        groups.forEach { group ->
+            val groupTrips = tripsByGroup[group.id]?.sortedByDescending { it.updatedAt } ?: emptyList()
+            val sortTime = group.updatedAt.time.coerceAtLeast(groupTrips.firstOrNull()?.updatedAt?.time ?: 0L)
+            tempItems.add(SortableHistoryItem.GroupBlock(group, groupTrips, sortTime))
+        }
+
+        orphanTrips.forEach { trip ->
+            tempItems.add(SortableHistoryItem.SingleTripItem(trip, trip.updatedAt.time))
+        }
+
+        tempItems.sortByDescending { it.time }
+
+        tempItems.forEach { item ->
+            when (item) {
+                is SortableHistoryItem.SingleTripItem -> {
+                    items.add(HistoryItem.SingleTrip(item.trip))
+                }
+                is SortableHistoryItem.GroupBlock -> {
+                    items.add(HistoryItem.GroupHeader(item.group))
+                    item.trips.forEachIndexed { index, trip ->
+                        val isLast = index == item.trips.lastIndex
+                        items.add(HistoryItem.GroupTrip(trip, isLast))
+                    }
+                }
+            }
+        }
+        items
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 
     private val _editingTrip = MutableStateFlow<Trip?>(null)
     val editingTrip = _editingTrip.asStateFlow()
@@ -82,6 +147,7 @@ class CarViewModel(
     private var tripJob: Job? = null
     private var tripGroupJob: Job? = null
     private var vehicleJob: Job? = null
+    private var vehicleIdsWithTripsJob: Job? = null
     private var currencyJob: Job? = null
     private var fuelPriceJob: Job? = null
     private var exchangeRateJob: Job? = null
@@ -92,6 +158,7 @@ class CarViewModel(
         tripJob?.cancel()
         tripGroupJob?.cancel()
         vehicleJob?.cancel()
+        vehicleIdsWithTripsJob?.cancel()
         currencyJob?.cancel()
         fuelPriceJob?.cancel()
         exchangeRateJob?.cancel()
@@ -104,6 +171,9 @@ class CarViewModel(
         }
         vehicleJob = viewModelScope.launch {
             repository.getAllVehicles(userId).collect { vehicles -> _savedVehicles.value = vehicles }
+        }
+        vehicleIdsWithTripsJob = viewModelScope.launch {
+            repository.getVehicleIdsWithTrips(userId).collect { ids -> _vehicleIdsWithTrips.value = ids }
         }
         currencyJob = viewModelScope.launch {
             repository.getAllCurrencies().collect { currencies -> _currencies.value = currencies }
@@ -137,6 +207,7 @@ class CarViewModel(
         tripJob?.cancel()
         tripGroupJob?.cancel()
         vehicleJob?.cancel()
+        vehicleIdsWithTripsJob?.cancel()
         currencyJob?.cancel()
         fuelPriceJob?.cancel()
         exchangeRateJob?.cancel()
@@ -144,6 +215,7 @@ class CarViewModel(
         _savedTrips.value = emptyList()
         _tripGroups.value = emptyList()
         _savedVehicles.value = emptyList()
+        _vehicleIdsWithTrips.value = emptySet()
         _currencies.value = emptyList()
         _fuelPrices.value = emptyList()
         _defaultCurrency.value = null

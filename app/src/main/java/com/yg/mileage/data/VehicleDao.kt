@@ -49,6 +49,9 @@ interface VehicleDao {
     @Query("SELECT EXISTS(SELECT 1 FROM trips WHERE vehicleId = :vehicleId AND userId = :userId LIMIT 1)")
     suspend fun hasTrips(vehicleId: String, userId: String): Boolean
 
+    @Query("SELECT DISTINCT vehicleId FROM trips WHERE userId = :userId")
+    fun getVehicleIdsWithTrips(userId: String): Flow<List<String>>
+
     @Query("DELETE FROM vehicles WHERE userId = :userId")
     suspend fun deleteAllVehiclesForUser(userId: String)
 }

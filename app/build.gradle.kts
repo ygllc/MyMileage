@@ -137,6 +137,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.material)
     implementation(libs.material3)
+    implementation(libs.materialKolor)
     implementation(libs.androidx.material3.window.size.class1)
     implementation(libs.material3.adaptive)
     implementation(libs.material3.adaptive.navigation.suite)

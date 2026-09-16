@@ -28,6 +28,14 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -106,6 +114,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.metadata
 import androidx.navigation3.ui.NavDisplay
 import coil3.compose.AsyncImage
 import com.yg.mileage.auth.FirebaseAuthClient
@@ -134,7 +143,6 @@ import com.yg.mileage.ui.vehiclesScreen.viewModel.Vehicle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 private enum class AdaptiveNavigationType {
     BottomBar,
@@ -196,15 +204,13 @@ class MainActivity : ComponentActivity() {
                     val windowSizeClass = calculateWindowSizeClass(this@MainActivity)
                     var isNavCollapsed by rememberSaveable { mutableStateOf(false) }
                     val railState = rememberWideNavigationRailState()
-                    
-                    // Updated adaptive navigation logic:
+
                     // Compact: Bottom Bar
                     // Medium & Expanded: Navigation Rail (Targeting tablets and foldables)
                     // Large & ExtraLarge: Permanent Navigation Drawer (Targeting desktop)
                     val adaptiveNavigationType = when (windowSizeClass.widthSizeClass) {
                         WindowWidthSizeClass.Compact -> AdaptiveNavigationType.BottomBar
-                        WindowWidthSizeClass.Medium,
-                        WindowWidthSizeClass.Expanded -> AdaptiveNavigationType.NavigationRail
+                        WindowWidthSizeClass.Medium, WindowWidthSizeClass.Expanded -> AdaptiveNavigationType.NavigationRail
                         else -> AdaptiveNavigationType.PermanentDrawer
                     }
 
@@ -626,7 +632,19 @@ fun AppContent(
                 }
             )
         }
-        entry<Screen.SignUp> {
+        entry<Screen.SignUp>(
+            metadata = metadata {
+                put(NavDisplay.TransitionKey) {
+                    slideInHorizontally(tween(300)) { it } togetherWith ExitTransition.KeepUntilTransitionsFinished
+                }
+                put(NavDisplay.PopTransitionKey) {
+                    EnterTransition.None togetherWith slideOutHorizontally(tween(300)) { it }
+                }
+                put(NavDisplay.PredictivePopTransitionKey) {
+                    EnterTransition.None togetherWith slideOutHorizontally(tween(300)) { it }
+                }
+            }
+        ) {
             SignUpScreen(
                 onSignUpClick = onEmailSignUpClick,
                 onSignInClick = dropUnlessResumed { navigator.goBack() },
@@ -668,11 +686,7 @@ fun AppContent(
                     }
                 },
                 canDeleteVehicle = { vehicleId: String ->
-                    runBlocking {
-                        carViewModel.canDeleteVehicle(
-                            vehicleId
-                        )
-                    }
+                    !carViewModel.vehicleIdsWithTrips.value.contains(vehicleId)
                 }
             )
         }
@@ -683,12 +697,36 @@ fun AppContent(
                 onNavigateToTripDetails = dropUnlessResumed { navigator.navigate(Screen.TripDetails) }
             )
         }
-        entry<Screen.TripDetails> {
+        entry<Screen.TripDetails>(
+            metadata = metadata {
+                put(NavDisplay.TransitionKey) {
+                    slideInHorizontally(tween(300)) { it } togetherWith ExitTransition.KeepUntilTransitionsFinished
+                }
+                put(NavDisplay.PopTransitionKey) {
+                    EnterTransition.None togetherWith slideOutHorizontally(tween(300)) { it }
+                }
+                put(NavDisplay.PredictivePopTransitionKey) {
+                    EnterTransition.None togetherWith slideOutHorizontally(tween(300)) { it }
+                }
+            }
+        ) {
             MileageCalculatorScreen(
                 carViewModel = carViewModel
             )
         }
-        entry<Screen.AddVehicle> { key ->
+        entry<Screen.AddVehicle>(
+            metadata = metadata {
+                put(NavDisplay.TransitionKey) {
+                    slideInHorizontally(tween(300)) { it } togetherWith ExitTransition.KeepUntilTransitionsFinished
+                }
+                put(NavDisplay.PopTransitionKey) {
+                    EnterTransition.None togetherWith slideOutHorizontally(tween(300)) { it }
+                }
+                put(NavDisplay.PredictivePopTransitionKey) {
+                    EnterTransition.None togetherWith slideOutHorizontally(tween(300)) { it }
+                }
+            }
+        ) { key ->
             val vehicleToEdit = savedVehicles.find { it.name == key.vehicleName }
             AddVehicleScreen(
                 onSaveVehicle = { newVehicle: Vehicle ->
@@ -701,7 +739,19 @@ fun AppContent(
                 windowWidthSizeClass = windowWidthSizeClass
             )
         }
-        entry<Screen.Account> {
+        entry<Screen.Account>(
+            metadata = metadata {
+                put(NavDisplay.TransitionKey) {
+                    slideInHorizontally(tween(300)) { it } togetherWith ExitTransition.KeepUntilTransitionsFinished
+                }
+                put(NavDisplay.PopTransitionKey) {
+                    EnterTransition.None togetherWith slideOutHorizontally(tween(300)) { it }
+                }
+                put(NavDisplay.PredictivePopTransitionKey) {
+                    EnterTransition.None togetherWith slideOutHorizontally(tween(300)) { it }
+                }
+            }
+        ) {
             AccountScreen(
                 currentUser = carViewModel.currentUser.collectAsState().value,
                 onSignOutClick = {
@@ -736,16 +786,61 @@ fun AppContent(
                 )
             }
         }
-        entry<Screen.PersonalInfo> { PersonalInfoScreen(carViewModel = carViewModel) }
-        entry<Screen.SecuritySettings> { SecuritySettingsScreen(carViewModel = carViewModel) }
-        entry<Screen.CurrencySettings> { CurrencySettingsScreen(carViewModel = carViewModel) }
+        entry<Screen.PersonalInfo>(
+            metadata = metadata {
+                put(NavDisplay.TransitionKey) {
+                    slideInHorizontally(tween(300)) { it } togetherWith ExitTransition.KeepUntilTransitionsFinished
+                }
+                put(NavDisplay.PopTransitionKey) {
+                    EnterTransition.None togetherWith slideOutHorizontally(tween(300)) { it }
+                }
+                put(NavDisplay.PredictivePopTransitionKey) {
+                    EnterTransition.None togetherWith slideOutHorizontally(tween(300)) { it }
+                }
+            }
+        ) { PersonalInfoScreen(carViewModel = carViewModel) }
+        entry<Screen.SecuritySettings>(
+            metadata = metadata {
+                put(NavDisplay.TransitionKey) {
+                    slideInHorizontally(tween(300)) { it } togetherWith ExitTransition.KeepUntilTransitionsFinished
+                }
+                put(NavDisplay.PopTransitionKey) {
+                    EnterTransition.None togetherWith slideOutHorizontally(tween(300)) { it }
+                }
+                put(NavDisplay.PredictivePopTransitionKey) {
+                    EnterTransition.None togetherWith slideOutHorizontally(tween(300)) { it }
+                }
+            }
+        ) { SecuritySettingsScreen(carViewModel = carViewModel) }
+        entry<Screen.CurrencySettings>(
+            metadata = metadata {
+                put(NavDisplay.TransitionKey) {
+                    slideInHorizontally(tween(300)) { it } togetherWith ExitTransition.KeepUntilTransitionsFinished
+                }
+                put(NavDisplay.PopTransitionKey) {
+                    EnterTransition.None togetherWith slideOutHorizontally(tween(300)) { it }
+                }
+                put(NavDisplay.PredictivePopTransitionKey) {
+                    EnterTransition.None togetherWith slideOutHorizontally(tween(300)) { it }
+                }
+            }
+        ) { CurrencySettingsScreen(carViewModel = carViewModel) }
         entry<Screen.Activities> { ActivitiesScreen(carViewModel = carViewModel) }
     }
 
     NavDisplay(
         entries = navigationState.toEntries(entryProvider),
         onBack = { navigator.goBack() },
-        modifier = modifier
+        modifier = modifier,
+        transitionSpec = {
+            slideInHorizontally(tween(280)) { it / 4 } togetherWith fadeOut(tween(220))
+        },
+        popTransitionSpec = {
+            fadeIn(tween(220)) togetherWith slideOutHorizontally(tween(280)) { it / 4 }
+        },
+        predictivePopTransitionSpec = {
+            fadeIn(tween(220)) togetherWith slideOutHorizontally(tween(280)) { it / 4 }
+        }
     )
 }
 

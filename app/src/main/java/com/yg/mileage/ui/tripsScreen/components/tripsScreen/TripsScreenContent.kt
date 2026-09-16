@@ -73,8 +73,8 @@ import com.yg.mileage.data.TripGroupEntity
 import com.yg.mileage.ui.theme.MyMileageShapeDefaults
 import com.yg.mileage.ui.theme.adaptiveContent
 import com.yg.mileage.ui.tripsScreen.screens.FilterBottomSheetContent
-import com.yg.mileage.ui.tripsScreen.screens.HistoryItem
-import com.yg.mileage.ui.tripsScreen.screens.SortableHistoryItem
+import com.yg.mileage.ui.tripsScreen.viewModels.HistoryItem
+import com.yg.mileage.ui.tripsScreen.viewModels.SortableHistoryItem
 import com.yg.mileage.ui.tripsScreen.viewModels.Trip
 import com.yg.mileage.ui.tripsScreen.viewModels.TripStatus
 import com.yg.mileage.ui.vehiclesScreen.viewModel.Currency
@@ -88,8 +88,9 @@ fun TripsScreenContent(
     modifier: Modifier = Modifier,
     windowWidthSizeClass: WindowWidthSizeClass = WindowWidthSizeClass.Compact,
     isTwoPane: Boolean = false,
-    trips: List<Trip>,
-    tripGroups: List<TripGroupEntity>,
+    historyItems: List<HistoryItem>,
+    tripsFilterIndex: Int,
+    onFilterSelected: (Int) -> Unit,
     defaultCurrency: Currency?,
     selectedTripForPane: Trip?,
     showNewTripPane: Boolean,
@@ -104,57 +105,9 @@ fun TripsScreenContent(
     carViewModel: CarViewModel
 ) {
     val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()) }
-    var filterIndex by remember { mutableIntStateOf(0) }
     val coroutineScope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
-
-    // Prepare list items
-    val historyItems = remember(trips, tripGroups, filterIndex) {
-        val filteredTrips = when (filterIndex) {
-            1 -> trips.filter { it.status == TripStatus.COMPLETED }
-            2 -> trips.filter { it.status == TripStatus.DRAFT }
-            else -> trips
-        }
-
-        val items = mutableListOf<HistoryItem>()
-        val tripsByGroup = filteredTrips.filter { it.tripGroup != null }.groupBy { it.tripGroup!! }
-        val orphanTrips = filteredTrips.filter { it.tripGroup == null }
-
-        val tempItems = mutableListOf<SortableHistoryItem>()
-
-        // Add Groups
-        tripGroups.forEach { group ->
-            val groupTrips = tripsByGroup[group.id]?.sortedByDescending { it.updatedAt } ?: emptyList()
-            val sortTime = group.updatedAt.time.coerceAtLeast(groupTrips.firstOrNull()?.updatedAt?.time ?: 0L)
-            tempItems.add(SortableHistoryItem.GroupBlock(group, groupTrips, sortTime))
-        }
-
-        // Add Orphan Trips
-        orphanTrips.forEach { trip ->
-            tempItems.add(SortableHistoryItem.SingleTripItem(trip, trip.updatedAt.time))
-        }
-
-        // Sort by time descending
-        tempItems.sortByDescending { it.time }
-
-        // Flatten to HistoryItem list
-        tempItems.forEach { item ->
-            when (item) {
-                is SortableHistoryItem.SingleTripItem -> {
-                    items.add(HistoryItem.SingleTrip(item.trip))
-                }
-                is SortableHistoryItem.GroupBlock -> {
-                    items.add(HistoryItem.GroupHeader(item.group))
-                    item.trips.forEachIndexed { index, trip ->
-                        val isLast = index == item.trips.lastIndex
-                        items.add(HistoryItem.GroupTrip(trip, isLast))
-                    }
-                }
-            }
-        }
-        items
-    }
 
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -211,8 +164,8 @@ fun TripsScreenContent(
             ) {
                 // FILTER SEGMENTED BUTTONS AT THE TOP
                 TripHistoryFilterSegmented(
-                    selectedIndex = filterIndex,
-                    onSelected = { filterIndex = it },
+                    selectedIndex = tripsFilterIndex,
+                    onSelected = { onFilterSelected(it) },
                     onFilterClick = { showBottomSheet = true }
                 )
 
@@ -395,8 +348,8 @@ fun TripsScreenContent(
             ) {
                 // FILTER SEGMENTED BUTTONS AT THE TOP
                 TripHistoryFilterSegmented(
-                    selectedIndex = filterIndex,
-                    onSelected = { filterIndex = it },
+                    selectedIndex = tripsFilterIndex,
+                    onSelected = { onFilterSelected(it) },
                     onFilterClick = { showBottomSheet = true }
                 )
 
