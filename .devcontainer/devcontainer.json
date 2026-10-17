@@ -1,13 +1,12 @@
 {
-  "name": "Omarchy + Android Studio",
-  "build": {
-    "dockerfile": "Dockerfile"
-  },
-  "features": {
-    "ghcr.io/devcontainers/features/desktop-lite:1": {
-      "version": "latest"
+  "name": "Android Cloud Backend for Gateway",
+  "image": "://microsoft.com",
+  "customizations": {
+    "jetbrains": {
+      "backend": "AndroidStudio"
     }
   },
-  "forwardPorts": [6080],
-  "postCreateCommand": "sh .devcontainer/setup-omarchy.sh"
+  "onCreateCommand": "sudo apt-get update && sudo apt-get install -y openjdk-17-jdk libsvg-dev libglu1-mesa libpulse0",
+  "updateContentCommand": "mkdir -p ~/android-studio && wget -qO- https://gvt1.com | tar -xz -C ~/android-studio --strip-components=1"
 }
+
